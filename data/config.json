@@ -1,0 +1,75 @@
+{
+  "tienda": {
+    "nombre": "JUMA Joyas",
+    "eslogan": "Joyas delicadas para acompañarte todos los días",
+    "presentacion": "JUMA nace del cariño entre hermanas y del gusto por los detalles. Elegimos cada pieza pensando en mujeres reales: joyas delicadas, femeninas y fáciles de combinar, para regalar o regalarte.",
+    "dominio": ""
+  },
+  "categorias": ["Aros", "Anillos", "Pulseras", "Collares"],
+  "contacto": {
+    "whatsapp": "",
+    "mensajeWhatsapp": "¡Hola JUMA Joyas! Quería hacer una consulta.",
+    "email": "",
+    "ubicacion": "",
+    "horario": ""
+  },
+  "redes": {
+    "instagram": "",
+    "facebook": "",
+    "tiktok": ""
+  },
+  "envios": [
+    {
+      "id": "retiro",
+      "nombre": "Retiro del pedido",
+      "descripcion": "Coordinamos lugar y horario por WhatsApp.",
+      "costo": 0,
+      "requiereDireccion": false,
+      "activo": true
+    },
+    {
+      "id": "montevideo",
+      "nombre": "Envío en Montevideo",
+      "descripcion": "Entrega a domicilio dentro de Montevideo.",
+      "costo": null,
+      "requiereDireccion": true,
+      "activo": true
+    },
+    {
+      "id": "interior",
+      "nombre": "Envío al interior",
+      "descripcion": "Despacho por agencia. Se coordina al confirmar el pedido.",
+      "costo": null,
+      "requiereDireccion": true,
+      "activo": true
+    }
+  ],
+  "envioGratisDesde": null,
+  "pagos": [
+    {
+      "id": "transferencia",
+      "nombre": "Transferencia bancaria",
+      "instrucciones": "",
+      "activo": true
+    },
+    {
+      "id": "mercadopago",
+      "nombre": "Mercado Pago",
+      "instrucciones": "Te enviamos un link de pago por WhatsApp al confirmar el pedido.",
+      "activo": true
+    },
+    {
+      "id": "efectivo",
+      "nombre": "Efectivo al retirar",
+      "instrucciones": "",
+      "activo": true
+    },
+    {
+      "id": "redes-cobranza",
+      "nombre": "Abitab / RedPagos",
+      "instrucciones": "",
+      "activo": false
+    }
+  ],
+  "mostrarCamposPendientes": true
+}

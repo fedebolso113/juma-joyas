@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es-UY">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>JUMA Joyas · Tienda online</title>
+  <meta name="description" content="JUMA Joyas: aros, anillos y pulseras delicadas. Comprá online con envíos en Uruguay o coordiná tu pedido por WhatsApp.">
+  <meta name="theme-color" content="#FEFBF6">
+  <meta property="og:title" content="JUMA Joyas">
+  <meta property="og:description" content="Joyas delicadas para acompañarte todos los días.">
+  <meta property="og:image" content="img/logo-juma.jpg">
+  <link rel="icon" type="image/png" href="img/logo-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="aviso-config" class="aviso-config" hidden></div>
+
+  <header class="cabecera">
+    <div class="cabecera__in">
+      <button class="icono-btn menu-btn" id="menu-btn" aria-label="Abrir menú" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+      </button>
+      <a href="#/" class="marca" aria-label="JUMA Joyas, inicio">
+        <img src="img/logo-mark.png" alt="" width="212" height="350" class="marca__icono">
+        <span class="marca__texto"><span class="marca__nombre">JUMA</span><span class="marca__sub">JOYAS</span></span>
+      </a>
+      <nav class="nav" id="nav" aria-label="Principal">
+        <a href="#/" data-nav="inicio">Inicio</a>
+        <a href="#/catalogo" data-nav="catalogo">Catálogo</a>
+        <a href="#/contacto" data-nav="contacto">Contacto</a>
+      </nav>
+      <a href="#/carrito" class="icono-btn carrito-btn" aria-label="Ver carrito">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z M9 8V6.5a3 3 0 0 1 6 0V8" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/></svg>
+        <span class="carrito-btn__n" id="carrito-n" hidden>0</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="app" tabindex="-1">
+    <div class="cargando">Cargando…</div>
+  </main>
+
+  <footer class="pie">
+    <div class="pie__in">
+      <div class="pie__marca">
+        <img src="img/logo-mark.png" alt="" width="60" height="99" loading="lazy">
+        <p>JUMA Joyas</p>
+      </div>
+      <div class="pie__col">
+        <h3>Tienda</h3>
+        <a href="#/catalogo">Catálogo</a>
+        <a href="#/carrito">Carrito</a>
+        <a href="#/contacto">Contacto</a>
+      </div>
+      <div class="pie__col" id="pie-redes"></div>
+    </div>
+    <p class="pie__legal">Precios en pesos uruguayos (UYU). Envíos dentro de Uruguay.</p>
+  </footer>
+
+  <a id="wa-flotante" class="wa-flotante" href="#/contacto" aria-label="Escribinos por WhatsApp" hidden>
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+  </a>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/app.js" defer></script>
+</body>
+</html>
