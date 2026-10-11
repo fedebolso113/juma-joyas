@@ -1,0 +1,119 @@
+# Panel de administración de JUMA Joyas (Decap CMS)
+# Ver LEEME.md, sección "Administrar la tienda".
+
+backend:
+  # Los cambios del panel se guardan en este repositorio de GitHub.
+  # El inicio de sesión usa el proveedor OAuth de GitHub configurado en Netlify (ver LEEME.md).
+  name: github
+  repo: fedebolso113/juma-joyas
+  branch: main
+
+# Permite editar en tu computadora con `npx decap-server` (requiere Node.js)
+local_backend: true
+
+locale: es
+site_url: ""
+logo_url: ../img/logo-mark.svg
+
+media_folder: img/productos
+public_folder: img/productos
+
+collections:
+  - name: tienda
+    label: Tienda
+    editor:
+      preview: false
+    files:
+      - name: productos
+        label: Productos
+        file: data/productos.json
+        format: json
+        fields:
+          - name: productos
+            label: Productos
+            label_singular: Producto
+            widget: list
+            summary: "{{fields.nombre}} · ${{fields.precio}} · stock: {{fields.stock}}"
+            fields:
+              - { name: id, label: "ID (sin espacios ni tildes, se usa en la dirección web)", widget: string, pattern: ["^[a-z0-9-]+$", "Solo minúsculas, números y guiones"] }
+              - { name: nombre, label: Nombre, widget: string }
+              - { name: categoria, label: Categoría, widget: select, options: ["Aros", "Anillos", "Pulseras", "Collares"] }
+              - { name: precio, label: "Precio (UYU)", widget: number, value_type: int, min: 0 }
+              - { name: descripcion, label: Descripción, widget: text }
+              - { name: color, label: "Color / tono", widget: string, required: false }
+              - { name: material, label: "Material (vacío = 'Por completar')", widget: string, required: false }
+              - { name: medidas, label: "Medidas (vacío = 'Por completar')", widget: string, required: false }
+              - { name: stock, label: "Stock (vacío = 'a confirmar', 0 = agotado)", widget: number, value_type: int, min: 0, required: false }
+              - { name: destacado, label: "Mostrar en destacados del inicio", widget: boolean, default: false }
+              - { name: activo, label: "Visible en la tienda", widget: boolean, default: true }
+              - name: imagenes
+                label: Fotos (la primera es la principal)
+                widget: list
+                field: { name: imagen, label: Foto, widget: image }
+
+      - name: config
+        label: Configuración
+        file: data/config.json
+        format: json
+        fields:
+          - name: tienda
+            label: Tienda
+            widget: object
+            fields:
+              - { name: nombre, label: Nombre, widget: string }
+              - { name: eslogan, label: Eslogan, widget: string }
+              - { name: presentacion, label: "Texto de presentación (inicio)", widget: text }
+              - { name: dominio, label: Dominio, widget: string, required: false }
+          - { name: categorias, label: "Categorías (orden en el catálogo)", widget: list }
+          - name: contacto
+            label: Contacto
+            widget: object
+            fields:
+              - { name: whatsapp, label: "WhatsApp (ej.: 099 123 456 o +598 99 123 456)", widget: string, required: false }
+              - { name: mensajeWhatsapp, label: "Mensaje inicial de WhatsApp", widget: string, required: false }
+              - { name: email, label: Email, widget: string, required: false }
+              - { name: ubicacion, label: "Ubicación / punto de retiro", widget: string, required: false }
+              - { name: horario, label: "Horario de atención", widget: string, required: false }
+          - name: redes
+            label: Redes sociales (usuario o enlace completo)
+            widget: object
+            fields:
+              - { name: instagram, label: Instagram, widget: string, required: false }
+              - { name: facebook, label: Facebook, widget: string, required: false }
+              - { name: tiktok, label: TikTok, widget: string, required: false }
+          - name: envios
+            label: Envíos y retiro
+            label_singular: Opción de entrega
+            widget: list
+            summary: "{{fields.nombre}}"
+            fields:
+              - { name: id, label: ID, widget: string }
+              - { name: nombre, label: Nombre, widget: string }
+              - { name: descripcion, label: Descripción, widget: string, required: false }
+              - { name: costo, label: "Costo UYU (vacío = 'a confirmar', 0 = sin costo)", widget: number, value_type: int, required: false }
+              - { name: usaZonas, label: "Costo según zona de Montevideo (usa la lista de zonas)", widget: boolean, default: false, required: false }
+              - { name: requiereDireccion, label: "Pide dirección", widget: boolean, default: true }
+              - { name: activo, label: Activo, widget: boolean, default: true }
+          - name: zonasMontevideo
+            label: Zonas de envío en Montevideo (por distancia)
+            label_singular: Zona
+            widget: list
+            summary: "{{fields.nombre}} · ${{fields.costo}}"
+            fields:
+              - { name: id, label: ID, widget: string }
+              - { name: nombre, label: "Nombre (ej.: Zona 1 · Cercana)", widget: string }
+              - { name: costo, label: "Costo UYU (vacío = 'a confirmar')", widget: number, value_type: int, required: false }
+              - { name: barrios, label: "Barrios de esta zona", widget: list }
+          - { name: envioGratisDesde, label: "Envío gratis desde (UYU, vacío = no)", widget: number, value_type: int, required: false }
+          - { name: textoPagoPrevio, label: "Aviso de pago previo (se muestra al finalizar el pedido)", widget: text, required: false }
+          - name: pagos
+            label: Medios de pago
+            label_singular: Medio de pago
+            widget: list
+            summary: "{{fields.nombre}}"
+            fields:
+              - { name: id, label: ID, widget: string }
+              - { name: nombre, label: Nombre, widget: string }
+              - { name: instrucciones, label: "Instrucciones (ej.: datos de la cuenta)", widget: text, required: false }
+              - { name: activo, label: Activo, widget: boolean, default: true }
+          - { name: mostrarCamposPendientes, label: "Mostrar avisos de 'Por completar' (desactivar al publicar)", widget: boolean, default: true }

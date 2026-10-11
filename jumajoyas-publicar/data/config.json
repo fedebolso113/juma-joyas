@@ -1,0 +1,85 @@
+{
+  "tienda": {
+    "nombre": "JUMA Joyas",
+    "eslogan": "Joyas delicadas para acompañarte todos los días",
+    "presentacion": "JUMA nace del cariño entre hermanas y del gusto por los detalles. Elegimos cada pieza pensando en mujeres reales: joyas delicadas, femeninas y fáciles de combinar, para regalar o regalarte.",
+    "dominio": "www.jumajoyas.com.uy"
+  },
+  "categorias": ["Aros", "Anillos", "Pulseras", "Collares"],
+  "contacto": {
+    "whatsapp": "098 710 158",
+    "mensajeWhatsapp": "¡Hola JUMA Joyas! Quería hacer una consulta.",
+    "email": "",
+    "ubicacion": "",
+    "horario": ""
+  },
+  "redes": {
+    "instagram": "",
+    "facebook": "",
+    "tiktok": ""
+  },
+  "envios": [
+    {
+      "id": "montevideo",
+      "nombre": "Envío en Montevideo",
+      "descripcion": "Entrega a domicilio. El costo depende de la zona (distancia).",
+      "costo": null,
+      "usaZonas": true,
+      "requiereDireccion": true,
+      "activo": true
+    },
+    {
+      "id": "interior",
+      "nombre": "Envío al interior",
+      "descripcion": "Despacho por agencia una vez acreditado el pago.",
+      "costo": null,
+      "requiereDireccion": true,
+      "activo": true
+    },
+    {
+      "id": "retiro",
+      "nombre": "Retiro del pedido",
+      "descripcion": "Coordinamos lugar y horario una vez acreditado el pago.",
+      "costo": 0,
+      "requiereDireccion": false,
+      "activo": true
+    }
+  ],
+  "zonasMontevideo": [
+    {
+      "id": "zona-1",
+      "nombre": "Zona 1 · Cercana",
+      "costo": 250,
+      "barrios": ["Ciudad Vieja", "Centro", "Barrio Sur", "Cordón", "Palermo", "Parque Rodó", "Aguada", "Tres Cruces", "La Comercial", "Villa Muñoz", "Goes", "Jacinto Vera", "Larrañaga", "La Blanqueada", "Parque Batlle", "Punta Carretas", "Pocitos", "Reducto", "Arroyo Seco", "Bella Vista"]
+    },
+    {
+      "id": "zona-2",
+      "nombre": "Zona 2 · Intermedia",
+      "costo": 270,
+      "barrios": ["Buceo", "Malvín", "Villa Dolores", "La Figurita", "Brazo Oriental", "Atahualpa", "Prado", "Capurro", "Belvedere", "Paso Molino", "La Teja", "Aires Puros", "Cerrito", "Unión", "Malvín Norte", "Villa Española", "Mercado Modelo", "Bolívar", "Las Acacias", "Castro", "Pérez Castellanos", "Sayago", "Nuevo París", "Tres Ombúes"]
+    },
+    {
+      "id": "zona-3",
+      "nombre": "Zona 3 · Alejada",
+      "costo": 300,
+      "barrios": ["Punta Gorda", "Carrasco", "Carrasco Norte", "Maroñas", "Flor de Maroñas", "Ituzaingó", "Jardines del Hipódromo", "Piedras Blancas", "Manga", "Casavalle", "Las Canteras", "Punta de Rieles", "Peñarol", "Colón", "Lezica", "Conciliación", "Cerro", "Casabó", "Pajas Blancas", "Paso de la Arena", "Villa García", "Toledo Chico"]
+    }
+  ],
+  "envioGratisDesde": null,
+  "textoPagoPrevio": "Primero se paga el pedido por transferencia o Mercado Pago. Una vez acreditado el pago, preparamos y despachamos tu envío.",
+  "pagos": [
+    {
+      "id": "transferencia",
+      "nombre": "Transferencia bancaria",
+      "instrucciones": "Te enviamos los datos de la cuenta por WhatsApp al confirmar el pedido.",
+      "activo": true
+    },
+    {
+      "id": "mercadopago",
+      "nombre": "Mercado Pago",
+      "instrucciones": "Te enviamos un link de pago por WhatsApp al confirmar el pedido.",
+      "activo": true
+    }
+  ],
+  "mostrarCamposPendientes": true
+}

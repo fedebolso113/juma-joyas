@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Ícono JUMA: flor de cuatro pétalos con estrella al centro (redibujada del logo) -->
+  <g fill="none" stroke="#7A1630" stroke-width="2.6" stroke-linejoin="round">
+    <path id="p" d="M50 3 C59 10 69 19 69 32 C69 50 58 64 50 64 C42 64 31 50 31 32 C31 19 41 10 50 3Z"/>
+    <use href="#p" transform="rotate(90 50 50)"/>
+    <use href="#p" transform="rotate(180 50 50)"/>
+    <use href="#p" transform="rotate(270 50 50)"/>
+  </g>
+  <path fill="#7A1630" d="M50 30 Q51 35 55 36.5 Q51 38 50 43 Q49 38 45 36.5 Q49 35 50 30Z"/>
+</svg>

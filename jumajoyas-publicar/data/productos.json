@@ -1,0 +1,188 @@
+{
+  "productos": [
+    {
+      "id": "aros-flor-roja",
+      "nombre": "Aros Flor Roja",
+      "categoria": "Aros",
+      "precio": 1390,
+      "descripcion": "Aros con forma de flor de cuatro pétalos en rojo intenso, con borde en tono dorado. Una pieza con mucha presencia que ilumina cualquier look.",
+      "color": "Rojo con borde dorado",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": true,
+      "activo": true,
+      "imagenes": [
+        "img/productos/aros-flor-roja-1.webp",
+        "img/productos/aros-flor-roja-2.webp",
+        "img/productos/aros-flor-roja-3.webp"
+      ]
+    },
+    {
+      "id": "brazalete-ondas",
+      "nombre": "Brazalete Ondas",
+      "categoria": "Pulseras",
+      "precio": 1890,
+      "descripcion": "Brazalete ancho en tono dorado, con textura martillada y bordes ondulados. Ideal para usar solo o combinado con pulseras finas.",
+      "color": "Dorado",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": true,
+      "activo": true,
+      "imagenes": [
+        "img/productos/brazalete-ondas-1.webp",
+        "img/productos/brazalete-ondas-2.webp"
+      ]
+    },
+    {
+      "id": "pulsera-esferas",
+      "nombre": "Pulsera Esferas",
+      "categoria": "Pulseras",
+      "precio": 1290,
+      "descripcion": "Pulsera de esferas pulidas en tono dorado. Un básico delicado para el día a día que combina con todo.",
+      "color": "Dorado",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": true,
+      "activo": true,
+      "imagenes": [
+        "img/productos/pulsera-esferas-1.webp",
+        "img/productos/pulsera-esferas-2.webp"
+      ]
+    },
+    {
+      "id": "aros-flor-negra",
+      "nombre": "Aros Flor Negra",
+      "categoria": "Aros",
+      "precio": 1390,
+      "descripcion": "Aros con forma de flor de cuatro pétalos en negro, con borde en tono dorado. Elegantes y con carácter.",
+      "color": "Negro con borde dorado",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": true,
+      "activo": true,
+      "imagenes": [
+        "img/productos/aros-flor-negro-1.webp",
+        "img/productos/aros-flor-duo.webp"
+      ]
+    },
+    {
+      "id": "aros-flor-blanca",
+      "nombre": "Aros Flor Blanca",
+      "categoria": "Aros",
+      "precio": 1390,
+      "descripcion": "Aros con forma de flor de cuatro pétalos en blanco, con borde en tono dorado. Suaves, luminosos y fáciles de combinar.",
+      "color": "Blanco con borde dorado",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": false,
+      "activo": true,
+      "imagenes": [
+        "img/productos/aros-flor-blanco-1.webp",
+        "img/productos/aros-flor-duo.webp"
+      ]
+    },
+    {
+      "id": "aros-hojas-plateados",
+      "nombre": "Aros Hojas",
+      "categoria": "Aros",
+      "precio": 1190,
+      "descripcion": "Aros con forma de hojas en tono plateado, de superficie lisa y brillante. Delicados y modernos.",
+      "color": "Plateado",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": true,
+      "activo": true,
+      "imagenes": [
+        "img/productos/aros-hojas-1.webp",
+        "img/productos/aros-hojas-2.webp"
+      ]
+    },
+    {
+      "id": "aros-hojas-oscuros",
+      "nombre": "Aros Hojas Oscuros",
+      "categoria": "Aros",
+      "precio": 1190,
+      "descripcion": "Aros con forma de hojas en tono gris oscuro brillante. Una versión más intensa del clásico diseño de hojas.",
+      "color": "Gris oscuro brillante",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": false,
+      "activo": true,
+      "imagenes": [
+        "img/productos/aros-hojas-oscuro-1.webp"
+      ]
+    },
+    {
+      "id": "aros-ala",
+      "nombre": "Aros Ala",
+      "categoria": "Aros",
+      "precio": 1190,
+      "descripcion": "Aros en tono dorado con forma de ala, de volumen suave y acabado pulido.",
+      "color": "Dorado",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": false,
+      "activo": true,
+      "imagenes": [
+        "img/productos/aros-ala-1.webp"
+      ]
+    },
+    {
+      "id": "argollas-piedras-negras",
+      "nombre": "Argollas Piedras Negras",
+      "categoria": "Aros",
+      "precio": 1290,
+      "descripcion": "Argollas pequeñas en tono dorado con dos filas de piedras negras. Un toque de brillo para todos los días.",
+      "color": "Dorado con piedras negras",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": false,
+      "activo": true,
+      "imagenes": [
+        "img/productos/argollas-negras-1.webp",
+        "img/productos/argollas-negras-2.webp"
+      ]
+    },
+    {
+      "id": "anillo-brillo",
+      "nombre": "Anillo Brillo",
+      "categoria": "Anillos",
+      "precio": 990,
+      "descripcion": "Anillo fino en tono plateado con una línea de piedras brillantes. Delicado para usar solo o combinado con otros anillos.",
+      "color": "Plateado",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": false,
+      "activo": true,
+      "imagenes": [
+        "img/productos/anillo-brillantes-1.webp"
+      ]
+    },
+    {
+      "id": "anillo-noche",
+      "nombre": "Anillo Noche",
+      "categoria": "Anillos",
+      "precio": 1490,
+      "descripcion": "Anillo ancho en tono plateado, cubierto de cristales oscuros que reflejan la luz. Una pieza llamativa y sofisticada.",
+      "color": "Plateado con cristales oscuros",
+      "material": "",
+      "medidas": "",
+      "stock": null,
+      "destacado": false,
+      "activo": true,
+      "imagenes": [
+        "img/productos/anillo-pave-1.webp"
+      ]
+    }
+  ]
+}
