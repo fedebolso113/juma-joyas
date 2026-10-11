@@ -93,14 +93,15 @@
   function foto(id, w, h) { return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&q=75&w=${w}${h ? "&h=" + h : ""}`; }
   const FOTOS = {
     portada: "img/ambientacion/portada.jpg",   // generada con Buzzy AI: Aros Flor Roja
-    aros: "1671644730555-916aa8d8157f",
-    pulseras: "1633810543462-77c4a3b13f07",
-    anillos: "1614606140245-2c33ece9e2cf",
-    collares: "1601821765780-754fa98637c1",
-    regalo: "1609421140100-839985651c84",
-    capas: "1599459183200-59c7687a0275",
-    historia: "1585960622850-ed33c41d6418",
-    historia2: "1599459182681-c938b7f65af0"
+    // generadas con Buzzy AI a partir de fotos de Unsplash, con productos JUMA
+    aros: "img/ambientacion/aros.jpg",                 // Aros Zana
+    pulseras: "img/ambientacion/pulseras.jpg",         // Pulsera Emi
+    anillos: "img/ambientacion/anillos.jpg",           // Anillo Nueva York oscuro
+    collares: "img/ambientacion/coleccion.jpg",        // Collar Punto de Luz rosa
+    regalo: "img/ambientacion/regalo.jpg",             // Esclava María en caja JUMA
+    capas: "img/ambientacion/capas.jpg",               // Collar Vale + Collar Pandora
+    historia: "img/ambientacion/historia.jpg",         // Brazalete Amanda oro
+    historia2: "img/ambientacion/historia-mosaico.jpg" // Collar Pandora
   };
   function imgFoto(clave, w, h, alt, extra) {
     const id = FOTOS[clave];
