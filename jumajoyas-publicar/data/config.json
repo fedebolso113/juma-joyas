@@ -72,13 +72,13 @@
     {
       "id": "transferencia",
       "nombre": "Transferencia bancaria",
-      "instrucciones": "Te enviamos los datos de la cuenta por WhatsApp al confirmar el pedido.",
+      "instrucciones": "Te enviamos los datos de la cuenta por mail al confirmar la compra.",
       "activo": true
     },
     {
       "id": "mercadopago",
       "nombre": "Mercado Pago",
-      "instrucciones": "Te enviamos un link de pago por WhatsApp al confirmar el pedido.",
+      "instrucciones": "Te enviamos el link de pago por mail al confirmar la compra.",
       "activo": true
     }
   ],

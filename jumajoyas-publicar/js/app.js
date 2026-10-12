@@ -458,10 +458,9 @@
     const datos = leerLS(LS_DATOS, {});
     const envios = enviosActivos(), pagos = pagosActivos();
     const st = subtotal();
-    const sinWA = !numeroWA();
     return `
       <div class="contenedor">
-        <div class="cabeza-pagina"><h1>Finalizar pedido</h1><p>Completá tus datos y te confirmamos por WhatsApp.</p></div>
+        <div class="cabeza-pagina"><h1>Finalizar compra</h1><p>Completá tus datos para confirmar tu compra.</p></div>
         <div class="carrito">
           <form class="form" id="form-pedido" novalidate>
             <fieldset>
@@ -469,8 +468,9 @@
               <div class="campo"><label for="f-nombre">Nombre y apellido *</label><input id="f-nombre" name="nombre" autocomplete="name" required value="${esc(datos.nombre)}"></div>
               <div class="dos-col">
                 <div class="campo"><label for="f-tel">Celular *</label><input id="f-tel" name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="09X XXX XXX" required value="${esc(datos.telefono)}"></div>
-                <div class="campo"><label for="f-email">Email (opcional)</label><input id="f-email" name="email" type="email" autocomplete="email" value="${esc(datos.email)}"></div>
+                <div class="campo"><label for="f-email">Email *</label><input id="f-email" name="email" type="email" autocomplete="email" required value="${esc(datos.email)}"><small class="campo__ayuda">Te escribimos a este mail con los datos para pagar.</small></div>
               </div>
+              <label class="casilla"><input type="checkbox" name="newsletter" value="si" ${datos.newsletter ? "checked" : ""}><span>Quiero recibir novedades, lanzamientos y promociones de JUMA por mail. <small>Podés darte de baja cuando quieras.</small></span></label>
             </fieldset>
             <fieldset>
               <legend>Entrega</legend>
@@ -511,11 +511,10 @@
             <div class="resumen__fila"><span>Envío</span><span id="r-envio">—</span></div>
             <div class="resumen__fila resumen__fila--total"><span>Total</span><span id="r-total">${precio(st)}</span></div>
             <p class="resumen__nota" id="r-nota"></p>
-            <button class="btn btn--bloque" type="submit" form="form-pedido">Revisar y enviar pedido</button>
-            ${sinWA && pendientesVisibles() ? `<p class="resumen__nota"><span class="pendiente">Falta configurar el número de WhatsApp de la tienda para recibir pedidos.</span></p>` : ""}
+            <button class="btn btn--bloque" type="submit" form="form-pedido" id="btn-confirmar">Confirmar compra</button>
           </aside>
         </div>
-        <div class="barra-movil"><div>Total<strong id="b-total">${precio(st)}</strong></div><button class="btn" type="submit" form="form-pedido">Continuar</button></div>
+        <div class="barra-movil"><div>Total<strong id="b-total">${precio(st)}</strong></div><button class="btn" type="submit" form="form-pedido">Confirmar</button></div>
       </div>`;
   }
 
@@ -537,11 +536,11 @@
       document.getElementById("r-total").textContent = precio(total) + (envioAConfirmar(e, c) ? " + envío" : "");
       document.getElementById("b-total").textContent = precio(total);
       document.getElementById("r-nota").textContent = e && e.pagaComprador ? "El envío lo pagás al recibirlo en la agencia."
-        : (envioAConfirmar(e, c) && !faltaBarrio ? "El costo de envío se confirma por WhatsApp." : "Precios en pesos uruguayos (UYU).");
+        : (envioAConfirmar(e, c) && !faltaBarrio ? "El costo de envío te lo confirmamos por mail." : "Precios en pesos uruguayos (UYU).");
     }
     form.addEventListener("change", actualizar);
     actualizar();
-    form.addEventListener("submit", ev => {
+    form.addEventListener("submit", async ev => {
       ev.preventDefault();
       const fd = new FormData(form);
       const datos = Object.fromEntries(fd.entries());
@@ -549,7 +548,7 @@
       const pago = pagosActivos().find(x => x.id === datos.pago);
       const conDir = !!(envio && envio.requiereDireccion);
       const conZonas = conDir && !!envio.usaZonas;
-      const requeridos = ["nombre", "telefono"].concat(conDir ? (conZonas ? ["barrio", "direccion"] : ["ciudad", "direccion"]) : []);
+      const requeridos = ["nombre", "email", "telefono"].concat(conDir ? (conZonas ? ["barrio", "direccion"] : ["ciudad", "direccion"]) : []);
       let primero = null;
       form.querySelectorAll(".campo__error").forEach(x => x.remove());
       form.querySelectorAll(".campo--error").forEach(x => x.classList.remove("campo--error"));
@@ -557,15 +556,17 @@
         const inp = form.elements[k];
         let ok = String(datos[k] || "").trim().length > 1;
         if (k === "telefono") ok = String(datos[k] || "").replace(/\D/g, "").length >= 8;
+        if (k === "email") ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(datos[k] || "").trim());
         if (!ok) {
           const campo = inp.closest(".campo"); campo.classList.add("campo--error");
-          campo.insertAdjacentHTML("beforeend", `<span class="campo__error">${k === "telefono" ? "Ingresá un celular válido" : (k === "barrio" ? "Elegí tu barrio" : "Completá este campo")}</span>`);
+          campo.insertAdjacentHTML("beforeend", `<span class="campo__error">${k === "telefono" ? "Ingresá un celular válido" : (k === "email" ? "Ingresá un email válido" : (k === "barrio" ? "Elegí tu barrio" : "Completá este campo"))}</span>`);
           primero = primero || inp;
         }
       });
       if (!envio || !pago) { toast("Elegí una forma de entrega y de pago"); return; }
       if (primero) { primero.focus(); return; }
-      const guardado = { nombre: datos.nombre, telefono: datos.telefono, email: datos.email, direccion: datos.direccion, barrio: datos.barrio };
+      datos.email = datos.email.trim();
+      const guardado = { nombre: datos.nombre, telefono: datos.telefono, email: datos.email, direccion: datos.direccion, barrio: datos.barrio, newsletter: !!datos.newsletter };
       if (!conZonas) { guardado.departamento = datos.departamento; guardado.ciudad = datos.ciudad; }
       guardarLS(LS_DATOS, guardado);
       if (conZonas) { datos.departamento = "Montevideo"; datos.ciudad = datos.barrio; }
@@ -573,42 +574,66 @@
       const c = costoEnvio(envio, st, datos.barrio);
       const f = new Date();
       const codigo = "JUMA-" + f.toISOString().slice(2, 10).replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
-      pedidoActual = { codigo, datos, envio, zona, pago, costoEnvio: c, lineas: lineasCarrito().map(l => ({ nombre: nombreLinea(l), cant: l.cant, precio: l.p.precio })), subtotal: st };
+      const pedido = { codigo, datos, envio, zona, pago, costoEnvio: c, lineas: lineasCarrito().map(l => ({ nombre: nombreLinea(l), cant: l.cant, precio: l.p.precio })), subtotal: st };
+
+      const botones = document.querySelectorAll('button[form="form-pedido"]');
+      botones.forEach(b => { b.disabled = true; b.dataset.texto = b.textContent; b.textContent = "Confirmando…"; });
+      try {
+        await enviarFormulario("pedidos", camposPedido(pedido));
+        if (datos.newsletter) await enviarFormulario("newsletter", { email: datos.email, nombre: datos.nombre, origen: "compra " + codigo }).catch(() => {});
+      } catch (err) {
+        botones.forEach(b => { b.disabled = false; b.textContent = b.dataset.texto; });
+        toast("No pudimos confirmar la compra. Revisá tu conexión e intentá de nuevo.");
+        return;
+      }
+      pedidoActual = pedido;
+      carrito = []; guardarCarrito();
       location.hash = "#/confirmar";
     });
   }
 
-  function mensajePedido(o) {
-    const L = [];
-    L.push(`¡Hola JUMA Joyas! Quiero hacer este pedido:`);
-    L.push(`Pedido ${o.codigo}`, "");
-    o.lineas.forEach(l => L.push(`• ${l.cant} × ${l.nombre} — ${precio(l.precio * l.cant)}`));
-    L.push("", `Subtotal: ${precio(o.subtotal)}`);
-    L.push(`Entrega: ${o.envio.nombre}${o.zona ? " · " + o.zona.nombre : ""} (${textoEnvio(o.envio, o.costoEnvio)})`);
-    if (o.envio.requiereDireccion) L.push(`Dirección: ${o.datos.direccion}, ${o.datos.ciudad}, ${o.datos.departamento}`);
-    L.push(`Total: ${precio(o.subtotal + (o.costoEnvio || 0))}${envioAConfirmar(o.envio, o.costoEnvio) ? " + envío a confirmar" : (o.envio.pagaComprador ? " (envío a cargo del comprador)" : "")}`);
-    L.push(`Pago: ${o.pago.nombre}`, "");
-    L.push(`Nombre: ${o.datos.nombre}`, `Celular: ${o.datos.telefono}`);
-    if (o.datos.email) L.push(`Email: ${o.datos.email}`);
-    if (o.datos.notas) L.push(`Notas: ${o.datos.notas}`);
-    L.push("", "Quedo a la espera de los datos para pagar.");
-    return L.join("\n");
+  /* ---------- envío del pedido ----------
+     Los pedidos y las suscripciones se guardan con Netlify Forms (quedan en el
+     panel de Netlify y se pueden exportar). Cada pedido dispara la función
+     netlify/functions/submission-created.js, que avisa a la tienda por WhatsApp. */
+  function camposPedido(o) {
+    const total = o.subtotal + (o.costoEnvio || 0);
+    const dir = o.envio.requiereDireccion ? `${o.datos.direccion}, ${o.datos.ciudad}, ${o.datos.departamento}` : "";
+    return {
+      codigo: o.codigo,
+      nombre: o.datos.nombre, email: o.datos.email, telefono: o.datos.telefono,
+      newsletter: o.datos.newsletter ? "si" : "no",
+      productos: o.lineas.map(l => `${l.cant} × ${l.nombre} (${precio(l.precio * l.cant)})`).join("\n"),
+      entrega: `${o.envio.nombre}${o.zona ? " · " + o.zona.nombre : ""} (${textoEnvio(o.envio, o.costoEnvio)})`,
+      direccion: dir,
+      pago: o.pago.nombre,
+      subtotal: precio(o.subtotal),
+      total: precio(total) + (envioAConfirmar(o.envio, o.costoEnvio) ? " + envío a confirmar" : (o.envio.pagaComprador ? " (envío a cargo del comprador)" : "")),
+      notas: o.datos.notas || ""
+    };
+  }
+  function enviarFormulario(nombre, campos) {
+    if (location.hostname === "localhost") { console.info("[prueba local] formulario", nombre, campos); return Promise.resolve(); }
+    return fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ "form-name": nombre, ...campos }).toString()
+    }).then(r => { if (!r.ok) throw new Error("HTTP " + r.status); });
   }
 
   function vistaConfirmar() {
     const o = pedidoActual;
     if (!o) return vistaCarrito();
-    const wa = linkWA(mensajePedido(o));
     const total = o.subtotal + (o.costoEnvio || 0);
     return `
       <div class="contenedor"><div class="confirmacion">
-        ${ornamento("Último paso")}
-        <h1>Enviá tu pedido por WhatsApp</h1>
+        ${ornamento("Compra confirmada")}
+        <h1>¡Gracias, ${esc(o.datos.nombre.split(" ")[0])}!</h1>
         <span class="confirmacion__codigo">${esc(o.codigo)}</span>
-        <p>Al tocar el botón se abre WhatsApp con tu pedido ya escrito. Te respondemos con los datos para pagar por ${esc(o.pago.nombre)}.</p>
+        <p>Recibimos tu compra. Te escribimos a <strong>${esc(o.datos.email)}</strong> con los datos para pagar por ${esc(o.pago.nombre)}.</p>
         <ol class="pasos-pedido">
-          <li><strong>Enviás el pedido</strong> por WhatsApp.</li>
-          <li><strong>Pagás</strong> por transferencia o Mercado Pago.</li>
+          <li><strong>Recibimos tu compra</strong> ✓</li>
+          <li><strong>Te enviamos por mail</strong> los datos para pagar por transferencia o Mercado Pago.</li>
           <li><strong>Una vez acreditado el pago</strong>, despachamos tu pedido.</li>
         </ol>
         <div class="resumen">
@@ -618,23 +643,14 @@
           <div class="resumen__fila resumen__fila--total"><span>Total</span><span>${precio(total)}${envioAConfirmar(o.envio, o.costoEnvio) ? " + envío" : ""}</span></div>
           ${o.pago.instrucciones ? `<p class="resumen__nota">${esc(o.pago.instrucciones)}</p>` : ""}
         </div>
+        <p class="resumen__nota">Guardá tu código de compra por si necesitás consultarnos. Si no ves nuestro mail, revisá la carpeta de spam.</p>
         <div class="confirmacion__acciones">
-          ${wa ? `<a class="btn btn--wa btn--bloque" id="enviar-wa" href="${wa}" target="_blank" rel="noopener">${icoWA} Enviar pedido por WhatsApp</a>`
-               : `<span class="pendiente" style="padding:12px">La tienda todavía no cargó su número de WhatsApp. Configuralo en data/config.json o desde /admin.</span>`}
-          <a class="btn btn--claro btn--bloque" href="#/pedido">Modificar datos</a>
+          <a class="btn btn--bloque" href="#/catalogo">Seguir mirando joyas</a>
         </div>
       </div></div>`;
   }
 
-  function montarConfirmar() {
-    const b = document.getElementById("enviar-wa");
-    if (b) b.addEventListener("click", () => {
-      carrito = []; guardarCarrito();
-      setTimeout(() => {
-        $app.querySelector(".confirmacion__acciones").innerHTML = `<p>¡Gracias! Si WhatsApp no se abrió, <a class="enlace" href="${b.href}" target="_blank" rel="noopener">tocá acá</a>.</p><a class="btn btn--claro btn--bloque" href="#/catalogo">Volver a la tienda</a>`;
-      }, 300);
-    });
-  }
+  function montarConfirmar() {}
 
   /* ---------- guías de talles y medidas ---------- */
   function guiaDe(p) {
@@ -775,7 +791,6 @@
       (email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : "");
 
     const faltan = [];
-    if (!numeroWA()) faltan.push("número de WhatsApp");
     if (!redes.length) faltan.push("redes sociales");
     if (PRODUCTOS.some(p => !p.material || !p.medidas || p.stock === null || p.stock === undefined)) faltan.push("materiales, medidas y stock de productos");
     if (enviosActivos().some(e => !e.pagaComprador && (e.usaZonas ? zonas().some(z => numOnull(z.costo) === null) : numOnull(e.costo) === null))) faltan.push("costos de envío");
@@ -826,6 +841,19 @@
   const menuBtn = document.getElementById("menu-btn"), nav = document.getElementById("nav");
   function cerrarMenu() { nav.classList.remove("abierto"); menuBtn.setAttribute("aria-expanded", "false"); }
   menuBtn.addEventListener("click", () => { const a = nav.classList.toggle("abierto"); menuBtn.setAttribute("aria-expanded", String(a)); });
+
+  // suscripción a novedades (pie de página) → lista de newsletter en Netlify Forms
+  document.getElementById("form-suscribir").addEventListener("submit", async e => {
+    e.preventDefault();
+    const inp = document.getElementById("suscribir-email"), btn = e.target.querySelector("button");
+    const email = inp.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { toast("Ingresá un email válido"); inp.focus(); return; }
+    btn.disabled = true;
+    try {
+      await enviarFormulario("newsletter", { email, nombre: "", origen: "pie de página" });
+      e.target.innerHTML = `<p class="suscribir__ok">¡Listo! Te sumamos a las novedades de JUMA.</p>`;
+    } catch (err) { toast("No pudimos suscribirte. Probá de nuevo en un rato."); btn.disabled = false; }
+  });
 
   // buscador de la cabecera
   document.getElementById("busqueda").addEventListener("submit", e => {

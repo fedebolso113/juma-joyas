@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>JUMA Joyas · Tienda online</title>
-  <meta name="description" content="JUMA Joyas: aros, anillos y pulseras delicadas. Comprá online con envíos en Uruguay o coordiná tu pedido por WhatsApp.">
+  <meta name="description" content="JUMA Joyas: aros, anillos y pulseras delicadas. Comprá online con envíos en Uruguay y pagá por transferencia o Mercado Pago.">
   <meta name="theme-color" content="#FFFFFF">
   <meta property="og:title" content="JUMA Joyas">
   <meta property="og:description" content="Joyas que transforman.">
@@ -20,7 +20,7 @@
   <div id="aviso-config" class="aviso-config" hidden></div>
 
   <div class="anuncio">Joyas que transforman · Envíos a todo Uruguay</div>
-  <div class="anuncio anuncio--oscuro">Elegí online y confirmamos tu pedido por WhatsApp</div>
+  <div class="anuncio anuncio--oscuro">Comprá online · Pagá por transferencia o Mercado Pago</div>
 
   <header class="cabecera">
     <div class="cabecera__in">
@@ -62,6 +62,17 @@
       <div><svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true"><path d="M16 4a12 12 0 0 0-10.3 18.1L4 28l6-1.6A12 12 0 1 0 16 4Z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M11 13.5h10M11 17.5h7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span>Atención personalizada</span></div>
       <div><svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true"><rect x="4" y="8" width="24" height="17" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 13h24M8 20h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span>Pagá por transferencia o Mercado Pago</span></div>
     </div>
+    <div class="suscribir">
+      <div>
+        <h3>Recibí novedades de JUMA</h3>
+        <p>Lanzamientos, ideas para regalar y promociones. Sin spam: podés darte de baja cuando quieras.</p>
+      </div>
+      <form id="form-suscribir" novalidate>
+        <label class="sr-only" for="suscribir-email">Tu email</label>
+        <input id="suscribir-email" type="email" placeholder="Tu email" autocomplete="email" required>
+        <button class="btn" type="submit">Suscribirme</button>
+      </form>
+    </div>
     <div class="pie__in">
       <div class="pie__marca">
         <img src="img/logo-mark.svg" alt="" width="56" height="56" loading="lazy">
@@ -86,6 +97,15 @@
     </div>
     <p class="pie__legal">© JUMA Joyas · Precios en pesos uruguayos (UYU). Envíos dentro de Uruguay.</p>
   </footer>
+
+  <!-- Formularios que Netlify detecta al publicar (los envía js/app.js). No se muestran. -->
+  <form name="pedidos" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input name="bot-field"><input name="codigo"><input name="nombre"><input name="email"><input name="telefono"><input name="newsletter">
+    <textarea name="productos"></textarea><input name="entrega"><input name="direccion"><input name="pago"><input name="subtotal"><input name="total"><textarea name="notas"></textarea>
+  </form>
+  <form name="newsletter" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input name="bot-field"><input name="email"><input name="nombre"><input name="origen">
+  </form>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

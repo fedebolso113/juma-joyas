@@ -1,2 +1,6 @@
 [build]
   publish = "jumajoyas-publicar"
+
+# Funciones de Netlify (aviso por WhatsApp de cada compra)
+[functions]
+  directory = "netlify/functions"
