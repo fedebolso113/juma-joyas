@@ -31,8 +31,9 @@
     {
       "id": "interior",
       "nombre": "Envío al interior",
-      "descripcion": "Despacho por agencia una vez acreditado el pago.",
+      "descripcion": "Despacho por agencia (DAC, UES u otra) una vez acreditado el pago. El envío lo paga quien recibe, al retirarlo en la agencia.",
       "costo": null,
+      "pagaComprador": true,
       "requiereDireccion": true,
       "activo": true
     },

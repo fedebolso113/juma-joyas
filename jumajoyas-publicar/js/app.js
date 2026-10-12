@@ -443,7 +443,12 @@
     return numOnull(e.costo);
   }
   function textoCosto(c) { return c === null ? "A confirmar" : (c === 0 ? "Sin costo" : precio(c)); }
+  // envío que paga quien lo recibe (ej.: al interior, en la agencia): no suma al total
+  const TEXTO_PAGA_COMPRADOR = "A cargo del comprador";
+  function textoEnvio(e, c) { return e && e.pagaComprador ? TEXTO_PAGA_COMPRADOR : textoCosto(c); }
+  function envioAConfirmar(e, c) { return !!e && c === null && !e.pagaComprador; }
   function textoCostoOpcion(e, st) {
+    if (e.pagaComprador) return TEXTO_PAGA_COMPRADOR;
     if (!e.usaZonas) return textoCosto(costoEnvio(e, st));
     if (CONFIG.envioGratisDesde && st >= CONFIG.envioGratisDesde) return "Sin costo";
     const cs = zonas().map(z => numOnull(z.costo)).filter(c => c !== null);
@@ -531,11 +536,12 @@
       const barrio = form.elements.barrio.value;
       const faltaBarrio = conZonas && !barrio;
       const c = costoEnvio(e, st, barrio);
-      document.getElementById("r-envio").textContent = !e ? "—" : (faltaBarrio ? "Elegí tu barrio" : textoCosto(c));
+      document.getElementById("r-envio").textContent = !e ? "—" : (faltaBarrio ? "Elegí tu barrio" : textoEnvio(e, c));
       const total = st + (c || 0);
-      document.getElementById("r-total").textContent = precio(total) + (c === null && e ? " + envío" : "");
+      document.getElementById("r-total").textContent = precio(total) + (envioAConfirmar(e, c) ? " + envío" : "");
       document.getElementById("b-total").textContent = precio(total);
-      document.getElementById("r-nota").textContent = c === null && e && !faltaBarrio ? "El costo de envío se confirma por WhatsApp." : "Precios en pesos uruguayos (UYU).";
+      document.getElementById("r-nota").textContent = e && e.pagaComprador ? "El envío lo pagás al recibirlo en la agencia."
+        : (envioAConfirmar(e, c) && !faltaBarrio ? "El costo de envío se confirma por WhatsApp." : "Precios en pesos uruguayos (UYU).");
     }
     form.addEventListener("change", actualizar);
     actualizar();
@@ -582,9 +588,9 @@
     L.push(`Pedido ${o.codigo}`, "");
     o.lineas.forEach(l => L.push(`• ${l.cant} × ${l.nombre} — ${precio(l.precio * l.cant)}`));
     L.push("", `Subtotal: ${precio(o.subtotal)}`);
-    L.push(`Entrega: ${o.envio.nombre}${o.zona ? " · " + o.zona.nombre : ""} (${textoCosto(o.costoEnvio)})`);
+    L.push(`Entrega: ${o.envio.nombre}${o.zona ? " · " + o.zona.nombre : ""} (${textoEnvio(o.envio, o.costoEnvio)})`);
     if (o.envio.requiereDireccion) L.push(`Dirección: ${o.datos.direccion}, ${o.datos.ciudad}, ${o.datos.departamento}`);
-    L.push(`Total: ${precio(o.subtotal + (o.costoEnvio || 0))}${o.costoEnvio === null ? " + envío a confirmar" : ""}`);
+    L.push(`Total: ${precio(o.subtotal + (o.costoEnvio || 0))}${envioAConfirmar(o.envio, o.costoEnvio) ? " + envío a confirmar" : (o.envio.pagaComprador ? " (envío a cargo del comprador)" : "")}`);
     L.push(`Pago: ${o.pago.nombre}`, "");
     L.push(`Nombre: ${o.datos.nombre}`, `Celular: ${o.datos.telefono}`);
     if (o.datos.email) L.push(`Email: ${o.datos.email}`);
@@ -611,9 +617,9 @@
         </ol>
         <div class="resumen">
           <div class="resumen__items">${o.lineas.map(l => `<div><span>${l.cant} × ${esc(l.nombre)}</span><span>${precio(l.precio * l.cant)}</span></div>`).join("")}</div>
-          <div class="resumen__fila"><span>Entrega: ${esc(o.envio.nombre)}${o.zona ? " · " + esc(o.zona.nombre) : ""}</span><span>${textoCosto(o.costoEnvio)}</span></div>
+          <div class="resumen__fila"><span>Entrega: ${esc(o.envio.nombre)}${o.zona ? " · " + esc(o.zona.nombre) : ""}</span><span>${textoEnvio(o.envio, o.costoEnvio)}</span></div>
           <div class="resumen__fila"><span>Pago</span><span>${esc(o.pago.nombre)}</span></div>
-          <div class="resumen__fila resumen__fila--total"><span>Total</span><span>${precio(total)}${o.costoEnvio === null ? " + envío" : ""}</span></div>
+          <div class="resumen__fila resumen__fila--total"><span>Total</span><span>${precio(total)}${envioAConfirmar(o.envio, o.costoEnvio) ? " + envío" : ""}</span></div>
           ${o.pago.instrucciones ? `<p class="resumen__nota">${esc(o.pago.instrucciones)}</p>` : ""}
         </div>
         <div class="confirmacion__acciones">
@@ -781,7 +787,7 @@
     if (!numeroWA()) faltan.push("número de WhatsApp");
     if (!redes.length) faltan.push("redes sociales");
     if (PRODUCTOS.some(p => !p.material || !p.medidas || p.stock === null || p.stock === undefined)) faltan.push("materiales, medidas y stock de productos");
-    if (enviosActivos().some(e => e.usaZonas ? zonas().some(z => numOnull(z.costo) === null) : numOnull(e.costo) === null)) faltan.push("costos de envío");
+    if (enviosActivos().some(e => !e.pagaComprador && (e.usaZonas ? zonas().some(z => numOnull(z.costo) === null) : numOnull(e.costo) === null))) faltan.push("costos de envío");
     const aviso = document.getElementById("aviso-config");
     if (pendientesVisibles() && faltan.length) { aviso.textContent = "Modo configuración · Falta completar: " + faltan.join(", ") + "."; aviso.hidden = false; }
   }

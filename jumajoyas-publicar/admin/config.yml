@@ -92,6 +92,7 @@ collections:
               - { name: nombre, label: Nombre, widget: string }
               - { name: descripcion, label: Descripción, widget: string, required: false }
               - { name: costo, label: "Costo UYU (vacío = 'a confirmar', 0 = sin costo)", widget: number, value_type: int, required: false }
+              - { name: pagaComprador, label: "Lo paga quien recibe (no suma al total)", widget: boolean, default: false, required: false }
               - { name: usaZonas, label: "Costo según zona de Montevideo (usa la lista de zonas)", widget: boolean, default: false, required: false }
               - { name: requiereDireccion, label: "Pide dirección", widget: boolean, default: true }
               - { name: activo, label: Activo, widget: boolean, default: true }
