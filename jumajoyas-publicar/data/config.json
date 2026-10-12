@@ -68,7 +68,7 @@
   ],
   "envioGratisDesde": null,
   "textoPagoPrevio": "Primero se paga la compra: por transferencia (subís el comprobante) o con Mercado Pago. Una vez verificado el pago, nos ponemos en contacto para coordinar el envío.",
-  "datosTransferencia": "Banco Santander Uruguay\nCuenta corriente en pesos ($)\nSucursal: 16\nNúmero de cuenta: 000098166807",
+  "datosTransferencia": "Banco Santander Uruguay\nCuenta corriente en pesos ($)\nSucursal: 16\nNúmero de cuenta: 000098166807\nTitular: Dayana Brites",
   "pagos": [
     {
       "id": "transferencia",
