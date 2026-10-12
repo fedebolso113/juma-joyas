@@ -92,15 +92,9 @@
   <script src="js/app.js" defer></script>
   <script>
     // Enlaces de invitación / recuperación de contraseña del panel (Netlify Identity)
+    // llegan a la página principal: se mandan al panel, que es donde se crea o cambia la contraseña
     if (/(invite|recovery|confirmation|email_change)_token=/.test(location.hash)) {
-      var s = document.createElement("script");
-      s.src = "https://identity.netlify.com/v1/netlify-identity-widget.js";
-      s.onload = function () {
-        // el script se carga después de que la página terminó de cargar, así que hay que iniciarlo a mano
-        netlifyIdentity.on("login", function () { location.href = "/admin/"; });
-        netlifyIdentity.init();
-      };
-      document.head.appendChild(s);
+      location.replace("/admin/" + location.hash);
     }
   </script>
 </body>
