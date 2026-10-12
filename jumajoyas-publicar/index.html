@@ -90,5 +90,14 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/app.js" defer></script>
+  <script>
+    // Enlaces de invitación / recuperación de contraseña del panel (Netlify Identity)
+    if (/(invite|recovery|confirmation|email_change)_token=/.test(location.hash)) {
+      var s = document.createElement("script");
+      s.src = "https://identity.netlify.com/v1/netlify-identity-widget.js";
+      s.onload = function () { netlifyIdentity.on("login", function () { location.href = "/admin/"; }); };
+      document.head.appendChild(s);
+    }
+  </script>
 </body>
 </html>

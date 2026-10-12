@@ -2,17 +2,15 @@
 # Ver LEEME.md, sección "Administrar la tienda".
 
 backend:
-  # Los cambios del panel se guardan en este repositorio de GitHub.
-  # El inicio de sesión usa el proveedor OAuth de GitHub configurado en Netlify (ver LEEME.md).
-  name: github
-  repo: fedebolso113/juma-joyas
+  # Inicio de sesión con email y contraseña (Netlify Identity, solo usuarios invitados).
+  # Netlify guarda los cambios del panel en el repositorio de GitHub (Git Gateway)
+  # y la tienda se vuelve a publicar sola en uno o dos minutos.
+  name: git-gateway
   branch: main
 
-# Permite editar en tu computadora con `npx decap-server` (requiere Node.js)
-local_backend: true
-
 locale: es
-site_url: ""
+site_url: "https://jumajoyas.com.uy"
+display_url: "https://jumajoyas.com.uy"
 logo_url: ../img/logo-mark.svg
 
 media_folder: jumajoyas-publicar/img/productos
@@ -33,11 +31,11 @@ collections:
             label: Productos
             label_singular: Producto
             widget: list
-            summary: "{{fields.nombre}} · ${{fields.precio}} · stock: {{fields.stock}}"
+            summary: "{{fields.marca}} · {{fields.nombre}} · ${{fields.precio}} · stock: {{fields.stock}}"
             fields:
               - { name: id, label: "ID (sin espacios ni tildes, se usa en la dirección web)", widget: string, pattern: ["^[a-z0-9-]+$", "Solo minúsculas, números y guiones"] }
               - { name: nombre, label: Nombre, widget: string }
-              - { name: marca, label: "Marca (ej.: Carlota)", widget: string, required: false }
+              - { name: marca, label: "Marca / proveedor (ej.: Carlota) — se muestra en la tienda", widget: string, required: false }
               - { name: categoria, label: Categoría, widget: select, options: ["Aros", "Anillos", "Pulseras", "Collares"] }
               - { name: precio, label: "Precio (UYU)", widget: number, value_type: int, min: 0 }
               - { name: descripcion, label: Descripción, widget: text }
