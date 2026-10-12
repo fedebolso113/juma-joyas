@@ -163,3 +163,29 @@ a { color: var(--bordo); }
 .aviso.visible { transform: translate(-50%, 0); }
 .aviso--error { background: var(--peligro); }
 .aviso--ok { background: var(--ok); }
+
+/* pedidos */
+.cabeza__acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.contador--alerta { background: var(--rosa); color: var(--bordo); font-weight: 500; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.chips button { border: 1px solid var(--linea); background: #fff; border-radius: 20px; padding: 6px 14px; cursor: pointer; font-size: .84rem; }
+.chips button:hover { border-color: var(--bordo); }
+.chips button.activo { background: var(--bordo); border-color: var(--bordo); color: #fff; }
+.lista-pedidos { display: grid; gap: 10px; }
+.pedido { display: grid; grid-template-columns: 220px 1.2fr 1.6fr auto; gap: 16px; align-items: center; text-align: left; background: #fff; border: 1px solid var(--linea); border-radius: var(--radio); padding: 14px 18px; cursor: pointer; width: 100%; transition: box-shadow .15s, border-color .15s; }
+.pedido:hover { border-color: var(--bordo); box-shadow: var(--sombra); }
+.pedido__principal small, .pedido__total small { display: block; color: var(--suave); font-size: .78rem; }
+.pedido__items { font-size: .86rem; color: var(--suave); }
+.pedido__total { text-align: right; font-weight: 500; color: var(--bordo); }
+@media (max-width: 860px) { .pedido { grid-template-columns: 1fr auto; } .pedido__estado { grid-column: 1 / -1; justify-self: start; } .pedido__items { grid-column: 1 / -1; } }
+.pedido__estado { display: inline-block; font-size: .74rem; font-weight: 500; padding: 4px 10px; border-radius: 12px; background: var(--crema); color: var(--suave); }
+.pedido__estado--alerta { background: #FFF1D6; color: #8A5A00; }
+.pedido__estado--ok { background: #E3F0E5; color: var(--ok); }
+.pedido__estado--fin { background: var(--rosa); color: var(--bordo); }
+.pedido__estado--cancelado { background: #F3E3E6; color: var(--peligro); text-decoration: line-through; }
+.comprobante-vista img { width: 100%; max-height: 520px; object-fit: contain; background: var(--crema); border-radius: 6px; border: 1px solid var(--linea); }
+.fila-precio { display: flex; justify-content: space-between; gap: 12px; font-size: .92rem; padding: 3px 0; }
+.fila-precio--total { border-top: 1px solid var(--linea); margin-top: 6px; padding-top: 8px; font-weight: 500; color: var(--bordo); }
+#pedido-cuerpo p { margin: 0 0 8px; font-size: .93rem; }
+.tarjeta-form textarea { width: 100%; border: 1px solid #d9d1ce; border-radius: 6px; padding: 8px 11px; font-size: .93rem; resize: vertical; color: var(--texto); }
+.tarjeta-form textarea:focus { outline: none; border-color: var(--bordo); box-shadow: 0 0 0 3px rgba(122, 22, 48, .12); }

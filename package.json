@@ -1,0 +1,9 @@
+{
+  "name": "juma-joyas",
+  "private": true,
+  "description": "Tienda JUMA Joyas: sitio estático en jumajoyas-publicar/ y funciones de Netlify en netlify/functions/",
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

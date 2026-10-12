@@ -67,18 +67,19 @@
     }
   ],
   "envioGratisDesde": null,
-  "textoPagoPrevio": "Primero se paga el pedido por transferencia o Mercado Pago. Una vez acreditado el pago, preparamos y despachamos tu envío.",
+  "textoPagoPrevio": "Primero se paga la compra: por transferencia (subís el comprobante) o con Mercado Pago. Una vez verificado el pago, nos ponemos en contacto para coordinar el envío.",
+  "datosTransferencia": "",
   "pagos": [
     {
       "id": "transferencia",
       "nombre": "Transferencia bancaria",
-      "instrucciones": "Te enviamos los datos de la cuenta por mail al confirmar la compra.",
+      "instrucciones": "Al confirmar te mostramos los datos de la cuenta. Después de transferir, subís el comprobante.",
       "activo": true
     },
     {
       "id": "mercadopago",
       "nombre": "Mercado Pago",
-      "instrucciones": "Te enviamos el link de pago por mail al confirmar la compra.",
+      "instrucciones": "Pagás online con tarjeta o con tu cuenta de Mercado Pago.",
       "activo": true
     }
   ],

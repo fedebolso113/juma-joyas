@@ -31,6 +31,7 @@
     <header class="barra">
       <a class="barra__marca" href="#productos"><img src="../img/logo-mark.svg" alt="" width="30" height="30"><span>JUMA</span><small>Panel</small></a>
       <nav class="barra__tabs" aria-label="Secciones">
+        <a href="#pedidos" data-tab="pedidos">Pedidos <span class="contador contador--alerta" id="n-pedidos" hidden></span></a>
         <a href="#productos" data-tab="productos">Productos <span class="contador" id="n-productos"></span></a>
         <a href="#tienda" data-tab="tienda">Tienda</a>
       </nav>
@@ -42,6 +43,31 @@
     </header>
 
     <main class="contenido">
+      <!-- Pedidos -->
+      <section id="vista-pedidos" class="vista" hidden>
+        <div class="cabeza">
+          <div>
+            <h1>Pedidos</h1>
+            <p class="sutil" id="resumen-pedidos">Cargando…</p>
+          </div>
+          <div class="cabeza__acciones">
+            <button class="btn btn--claro" id="btn-suscriptores">⬇ Suscriptores (CSV)</button>
+            <button class="btn btn--claro" id="btn-recargar">↻ Actualizar</button>
+          </div>
+        </div>
+        <div class="chips" id="filtro-pedidos">
+          <button data-filtro="pendientes" class="activo">Por resolver</button>
+          <button data-filtro="comprobante-recibido">Por verificar</button>
+          <button data-filtro="esperando-pago">Esperando pago</button>
+          <button data-filtro="listos">Pagados · por enviar</button>
+          <button data-filtro="enviado">Enviados</button>
+          <button data-filtro="cancelado">Cancelados</button>
+          <button data-filtro="">Todos</button>
+        </div>
+        <div class="lista-pedidos" id="lista-pedidos"></div>
+        <p class="vacio" id="vacio-pedidos" hidden>No hay pedidos en esta vista.</p>
+      </section>
+
       <!-- Productos -->
       <section id="vista-productos" class="vista">
         <div class="cabeza">
@@ -76,6 +102,11 @@
             <legend>Contacto</legend>
             <label>Email de contacto<input name="email" type="email" placeholder="info@jumajoyas.com.uy"></label>
             <label>Instagram<input name="instagram" placeholder="@juma.joyas"></label>
+          </fieldset>
+          <fieldset>
+            <legend>Datos para transferencia</legend>
+            <label>Se muestran a la clienta al confirmar una compra por transferencia <small>Banco, tipo y número de cuenta, titular, moneda.</small>
+              <textarea name="datosTransferencia" rows="5" placeholder="Banco: …&#10;Cuenta: …&#10;Titular: …&#10;Moneda: pesos uruguayos"></textarea></label>
           </fieldset>
           <fieldset>
             <legend>Envíos en Montevideo (por zona)</legend>
@@ -154,6 +185,19 @@
       </footer>
     </form>
   </div>
+  <!-- Detalle de pedido -->
+  <div class="editor" id="detalle-pedido" hidden>
+    <div class="editor__fondo" data-cerrar-pedido></div>
+    <div class="editor__caja">
+      <header class="editor__cabeza">
+        <h2 id="pedido-titulo">Pedido</h2>
+        <button type="button" class="icono" data-cerrar-pedido aria-label="Cerrar">✕</button>
+      </header>
+      <div class="editor__cuerpo" id="pedido-cuerpo"></div>
+      <footer class="editor__pie" id="pedido-acciones"></footer>
+    </div>
+  </div>
+
   <datalist id="lista-marcas"></datalist>
 
   <div class="aviso" id="aviso" role="status" aria-live="polite"></div>

@@ -10,6 +10,7 @@
   const $app = document.getElementById("app");
   const LS_CARRITO = "juma-carrito";
   const LS_DATOS = "juma-datos-cliente";
+  const LS_ULTIMO = "juma-ultima-compra";   // código y mail de la última compra (para subir el comprobante después)
   const DEPARTAMENTOS = ["Artigas", "Canelones", "Cerro Largo", "Colonia", "Durazno", "Flores", "Florida", "Lavalleja", "Maldonado", "Montevideo", "Paysandú", "Río Negro", "Rivera", "Rocha", "Salto", "San José", "Soriano", "Tacuarembó", "Treinta y Tres"];
 
   let CONFIG = {};
@@ -572,85 +573,176 @@
       if (conZonas) { datos.departamento = "Montevideo"; datos.ciudad = datos.barrio; }
       const zona = conZonas ? zonaDeBarrio(datos.barrio) : null;
       const c = costoEnvio(envio, st, datos.barrio);
-      const f = new Date();
-      const codigo = "JUMA-" + f.toISOString().slice(2, 10).replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
-      const pedido = { codigo, datos, envio, zona, pago, costoEnvio: c, lineas: lineasCarrito().map(l => ({ nombre: nombreLinea(l), cant: l.cant, precio: l.p.precio })), subtotal: st };
+      const lineas = lineasCarrito();
+      const entrada = {
+        cliente: { nombre: datos.nombre, email: datos.email, telefono: datos.telefono },
+        newsletter: !!datos.newsletter,
+        lineas: lineas.map(l => ({ id: l.id, talle: l.talle || "", cant: l.cant })),
+        envio: envio.id, barrio: datos.barrio || "", pago: pago.id, notas: datos.notas || "",
+        direccion: conDir ? `${datos.direccion}, ${datos.ciudad}, ${datos.departamento}` : ""
+      };
 
       const botones = document.querySelectorAll('button[form="form-pedido"]');
       botones.forEach(b => { b.disabled = true; b.dataset.texto = b.textContent; b.textContent = "Confirmando…"; });
-      try {
-        await enviarFormulario("pedidos", camposPedido(pedido));
-        if (datos.newsletter) await enviarFormulario("newsletter", { email: datos.email, nombre: datos.nombre, origen: "compra " + codigo }).catch(() => {});
-      } catch (err) {
+      let r;
+      try { r = await llamarApi("pedido", entrada); }
+      catch (err) {
         botones.forEach(b => { b.disabled = false; b.textContent = b.dataset.texto; });
-        toast("No pudimos confirmar la compra. Revisá tu conexión e intentá de nuevo.");
+        toast(err.message || "No pudimos confirmar la compra. Intentá de nuevo.");
         return;
       }
-      pedidoActual = pedido;
+      pedidoActual = {
+        codigo: r.codigo, modo: r.modo, total: r.total, datosTransferencia: r.datosTransferencia || "",
+        datos, envio, zona, pago, costoEnvio: c, subtotal: st,
+        lineas: lineas.map(l => ({ nombre: nombreLinea(l), cant: l.cant, precio: l.p.precio }))
+      };
+      guardarLS(LS_ULTIMO, { codigo: r.codigo, email: datos.email });
       carrito = []; guardarCarrito();
+      if (r.modo === "mercadopago" && r.pagar) { location.href = r.pagar; return; }   // pagar en Mercado Pago
       location.hash = "#/confirmar";
     });
   }
 
-  /* ---------- envío del pedido ----------
-     Los pedidos y las suscripciones se guardan con Netlify Forms (quedan en el
-     panel de Netlify y se pueden exportar). Cada pedido dispara la función
-     netlify/functions/submission-created.js, que avisa a la tienda por WhatsApp. */
-  function camposPedido(o) {
-    const total = o.subtotal + (o.costoEnvio || 0);
-    const dir = o.envio.requiereDireccion ? `${o.datos.direccion}, ${o.datos.ciudad}, ${o.datos.departamento}` : "";
-    return {
-      codigo: o.codigo,
-      nombre: o.datos.nombre, email: o.datos.email, telefono: o.datos.telefono,
-      newsletter: o.datos.newsletter ? "si" : "no",
-      productos: o.lineas.map(l => `${l.cant} × ${l.nombre} (${precio(l.precio * l.cant)})`).join("\n"),
-      entrega: `${o.envio.nombre}${o.zona ? " · " + o.zona.nombre : ""} (${textoEnvio(o.envio, o.costoEnvio)})`,
-      direccion: dir,
-      pago: o.pago.nombre,
-      subtotal: precio(o.subtotal),
-      total: precio(total) + (envioAConfirmar(o.envio, o.costoEnvio) ? " + envío a confirmar" : (o.envio.pagaComprador ? " (envío a cargo del comprador)" : "")),
-      notas: o.datos.notas || ""
-    };
+  /* ---------- compra: funciones de Netlify ----------
+     /api/pedido crea la compra · /api/comprobante recibe el comprobante de
+     transferencia · /api/suscribir suma a novedades. Ver netlify/functions/. */
+  async function llamarApi(ruta, datos) {
+    if (location.hostname === "localhost") return simularApi(ruta, datos);   // prueba local sin funciones
+    const r = await fetch("/api/" + ruta, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(datos) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || "No pudimos completar la operación. Intentá de nuevo.");
+    return j;
   }
-  function enviarFormulario(nombre, campos) {
-    if (location.hostname === "localhost") { console.info("[prueba local] formulario", nombre, campos); return Promise.resolve(); }
-    return fetch("/", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ "form-name": nombre, ...campos }).toString()
-    }).then(r => { if (!r.ok) throw new Error("HTTP " + r.status); });
+  function simularApi(ruta, datos) {
+    console.info("[prueba local]", ruta, datos);
+    if (ruta === "pedido") return Promise.resolve({ codigo: "JUMA-PRUEBA-" + Math.random().toString(36).slice(2, 6).toUpperCase(), modo: datos.pago === "mercadopago" ? "mercadopago-manual" : "transferencia", datosTransferencia: (CONFIG.datosTransferencia || "") });
+    return Promise.resolve({ ok: true });
+  }
+
+  const MENSAJE_VERIFICACION = "Una vez verificada la transferencia, nos ponemos en contacto para coordinar el envío.";
+
+  // formulario para subir el comprobante (se usa al confirmar y en #/comprobante)
+  function formComprobante(codigo, email) {
+    return `<form class="comprobante" id="form-comprobante" novalidate>
+      ${codigo ? `<input type="hidden" name="codigo" value="${esc(codigo)}"><input type="hidden" name="email" value="${esc(email)}">` : `
+        <div class="dos-col">
+          <div class="campo"><label for="c-codigo">Código de compra *</label><input id="c-codigo" name="codigo" placeholder="JUMA-…" required value="${esc((leerLS(LS_ULTIMO, {}) || {}).codigo || "")}"></div>
+          <div class="campo"><label for="c-email">Email de la compra *</label><input id="c-email" name="email" type="email" required value="${esc((leerLS(LS_ULTIMO, {}) || {}).email || "")}"></div>
+        </div>`}
+      <label class="subir-comprobante" id="zona-comprobante">
+        <input type="file" name="archivo" accept="image/*,application/pdf" hidden>
+        <span class="subir-comprobante__icono" aria-hidden="true">⬆</span>
+        <span><strong>Subí el comprobante de transferencia</strong><small id="comprobante-nombre">Foto o captura (JPG, PNG) o PDF · hasta 4 MB</small></span>
+      </label>
+      <button class="btn btn--bloque" type="submit">Enviar comprobante</button>
+    </form>`;
+  }
+  // las fotos se achican antes de enviarlas (el PDF va tal cual)
+  async function prepararComprobante(archivo) {
+    if (archivo.type === "application/pdf") return { tipo: "application/pdf", blob: archivo };
+    const bmp = await createImageBitmap(archivo);
+    const esc2 = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * esc2); c.height = Math.round(bmp.height * esc2);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    return { tipo: "image/jpeg", blob: await new Promise(r => c.toBlob(r, "image/jpeg", 0.85)) };
+  }
+  const aBase64 = blob => new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = mal; r.readAsDataURL(blob); });
+  function montarFormComprobante() {
+    const form = document.getElementById("form-comprobante"); if (!form) return;
+    const inp = form.elements.archivo, nombre = document.getElementById("comprobante-nombre");
+    inp.addEventListener("change", () => { if (inp.files[0]) { nombre.textContent = "✓ " + inp.files[0].name; form.querySelector(".subir-comprobante").classList.add("listo"); } });
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const codigo = form.elements.codigo.value.trim(), email = form.elements.email.value.trim();
+      if (!codigo || !email) { toast("Completá el código y el email de la compra"); return; }
+      if (!inp.files[0]) { toast("Elegí el archivo del comprobante"); return; }
+      const btn = form.querySelector("button"); btn.disabled = true; btn.textContent = "Enviando…";
+      try {
+        const { tipo, blob } = await prepararComprobante(inp.files[0]);
+        if (blob.size > 4 * 1024 * 1024) throw new Error("El archivo es muy grande (máximo 4 MB).");
+        await llamarApi("comprobante", { codigo, email, tipo, archivo: await aBase64(blob) });
+        form.outerHTML = `<div class="comprobante-ok"><strong>¡Recibimos tu comprobante!</strong><p>${MENSAJE_VERIFICACION}</p></div>`;
+      } catch (err) {
+        toast(err.message || "No pudimos enviar el comprobante. Intentá de nuevo.");
+        btn.disabled = false; btn.textContent = "Enviar comprobante";
+      }
+    });
+  }
+
+  function resumenCompra(o) {
+    const conTotal = o.total != null ? o.total : o.subtotal + (o.costoEnvio || 0);
+    return `<div class="resumen">
+      <div class="resumen__items">${o.lineas.map(l => `<div><span>${l.cant} × ${esc(l.nombre)}</span><span>${precio(l.precio * l.cant)}</span></div>`).join("")}</div>
+      <div class="resumen__fila"><span>Entrega: ${esc(o.envio.nombre)}${o.zona ? " · " + esc(o.zona.nombre) : ""}</span><span>${textoEnvio(o.envio, o.costoEnvio)}</span></div>
+      <div class="resumen__fila"><span>Pago</span><span>${esc(o.pago.nombre)}</span></div>
+      <div class="resumen__fila resumen__fila--total"><span>Total</span><span>${precio(conTotal)}${envioAConfirmar(o.envio, o.costoEnvio) ? " + envío" : ""}</span></div>
+    </div>`;
   }
 
   function vistaConfirmar() {
     const o = pedidoActual;
     if (!o) return vistaCarrito();
-    const total = o.subtotal + (o.costoEnvio || 0);
+    const total = o.total != null ? o.total : o.subtotal + (o.costoEnvio || 0);
+    const nombre = esc(o.datos.nombre.split(" ")[0]);
+    if (o.modo === "transferencia") return `
+      <div class="contenedor"><div class="confirmacion">
+        ${ornamento("Compra registrada")}
+        <h1>¡Gracias, ${nombre}!</h1>
+        <span class="confirmacion__codigo">${esc(o.codigo)}</span>
+        <p>Para terminar tu compra, hacé la transferencia y subí el comprobante acá abajo.</p>
+        <ol class="pasos-pedido">
+          <li><strong>Transferí ${precio(total)}</strong> a la cuenta de abajo.</li>
+          <li><strong>Subí el comprobante</strong> (una foto o captura alcanza).</li>
+          <li><strong>${MENSAJE_VERIFICACION}</strong></li>
+        </ol>
+        <div class="datos-transferencia">
+          <h2>Datos para transferir</h2>
+          ${o.datosTransferencia ? `<pre>${esc(o.datosTransferencia)}</pre>` : `<p>${pendiente("Falta cargar los datos de la cuenta en el panel (pestaña Tienda)")}</p>`}
+          <p class="resumen__nota">En el concepto o referencia poné tu código: <strong>${esc(o.codigo)}</strong></p>
+        </div>
+        ${formComprobante(o.codigo, o.datos.email)}
+        <p class="resumen__nota">¿Vas a transferir más tarde? Guardá tu código y subí el comprobante cuando quieras desde <a class="enlace" href="#/comprobante">jumajoyas.com.uy/#/comprobante</a>.</p>
+        ${resumenCompra(o)}
+      </div></div>`;
     return `
       <div class="contenedor"><div class="confirmacion">
-        ${ornamento("Compra confirmada")}
-        <h1>¡Gracias, ${esc(o.datos.nombre.split(" ")[0])}!</h1>
+        ${ornamento("Compra registrada")}
+        <h1>¡Gracias, ${nombre}!</h1>
         <span class="confirmacion__codigo">${esc(o.codigo)}</span>
-        <p>Recibimos tu compra. Te escribimos a <strong>${esc(o.datos.email)}</strong> con los datos para pagar por ${esc(o.pago.nombre)}.</p>
-        <ol class="pasos-pedido">
-          <li><strong>Recibimos tu compra</strong> ✓</li>
-          <li><strong>Te enviamos por mail</strong> los datos para pagar por transferencia o Mercado Pago.</li>
-          <li><strong>Una vez acreditado el pago</strong>, despachamos tu pedido.</li>
-        </ol>
-        <div class="resumen">
-          <div class="resumen__items">${o.lineas.map(l => `<div><span>${l.cant} × ${esc(l.nombre)}</span><span>${precio(l.precio * l.cant)}</span></div>`).join("")}</div>
-          <div class="resumen__fila"><span>Entrega: ${esc(o.envio.nombre)}${o.zona ? " · " + esc(o.zona.nombre) : ""}</span><span>${textoEnvio(o.envio, o.costoEnvio)}</span></div>
-          <div class="resumen__fila"><span>Pago</span><span>${esc(o.pago.nombre)}</span></div>
-          <div class="resumen__fila resumen__fila--total"><span>Total</span><span>${precio(total)}${envioAConfirmar(o.envio, o.costoEnvio) ? " + envío" : ""}</span></div>
-          ${o.pago.instrucciones ? `<p class="resumen__nota">${esc(o.pago.instrucciones)}</p>` : ""}
-        </div>
-        <p class="resumen__nota">Guardá tu código de compra por si necesitás consultarnos. Si no ves nuestro mail, revisá la carpeta de spam.</p>
-        <div class="confirmacion__acciones">
-          <a class="btn btn--bloque" href="#/catalogo">Seguir mirando joyas</a>
-        </div>
+        <p>Recibimos tu compra. Te escribimos a <strong>${esc(o.datos.email)}</strong> con el link para pagar por ${esc(o.pago.nombre)}. Una vez acreditado el pago, nos ponemos en contacto para coordinar el envío.</p>
+        ${resumenCompra(o)}
+        <div class="confirmacion__acciones"><a class="btn btn--bloque" href="#/catalogo">Seguir mirando joyas</a></div>
       </div></div>`;
   }
+  function montarConfirmar() { montarFormComprobante(); }
 
-  function montarConfirmar() {}
+  // subir el comprobante más tarde
+  function vistaComprobante() {
+    return `<div class="contenedor"><div class="confirmacion">
+      ${ornamento("Transferencia")}
+      <h1>Subí tu comprobante</h1>
+      <p>Ingresá el código de tu compra y el mail que usaste, y adjuntá el comprobante de la transferencia.</p>
+      ${formComprobante("", "")}
+    </div></div>`;
+  }
+
+  // vuelta desde Mercado Pago
+  function vistaGracias(params) {
+    const estado = params.get("estado") || "aprobado", codigo = params.get("codigo") || "";
+    const textos = {
+      aprobado: ["¡Pago recibido!", "Tu pago con Mercado Pago se acreditó. Nos ponemos en contacto para coordinar el envío."],
+      pendiente: ["Tu pago está en proceso", "Mercado Pago todavía está procesando el pago. Cuando se acredite, nos ponemos en contacto para coordinar el envío."],
+      error: ["No se pudo completar el pago", "El pago no se acreditó. Podés volver a intentarlo desde la tienda o elegir transferencia."]
+    };
+    const [titulo, texto] = textos[estado] || textos.aprobado;
+    return `<div class="contenedor"><div class="confirmacion">
+      ${ornamento("Mercado Pago")}
+      <h1>${titulo}</h1>
+      ${codigo ? `<span class="confirmacion__codigo">${esc(codigo)}</span>` : ""}
+      <p>${texto}</p>
+      <div class="confirmacion__acciones"><a class="btn btn--bloque" href="#/catalogo">Seguir mirando joyas</a></div>
+    </div></div>`;
+  }
 
   /* ---------- guías de talles y medidas ---------- */
   function guiaDe(p) {
@@ -812,7 +904,9 @@
       case "producto": { const id = decodeURIComponent(partes[1] || ""); html = vistaProducto(id); montar = () => montarProducto(id); nav = "catalogo"; break; }
       case "carrito": html = vistaCarrito(); montar = montarCarrito; titulo = "Carrito · JUMA Joyas"; break;
       case "pedido": html = vistaPedido(); montar = montarPedido; titulo = "Finalizar pedido · JUMA Joyas"; break;
-      case "confirmar": html = vistaConfirmar(); montar = pedidoActual ? montarConfirmar : montarCarrito; titulo = "Confirmar pedido · JUMA Joyas"; break;
+      case "confirmar": html = vistaConfirmar(); montar = pedidoActual ? montarConfirmar : montarCarrito; titulo = "Compra registrada · JUMA Joyas"; break;
+      case "comprobante": html = vistaComprobante(); montar = montarFormComprobante; titulo = "Subir comprobante · JUMA Joyas"; break;
+      case "gracias": html = vistaGracias(params); titulo = "Gracias · JUMA Joyas"; break;
       case "contacto": html = vistaContacto(); nav = "contacto"; titulo = "Contacto · JUMA Joyas"; break;
       case "talles": { const tipo = partes[1] === "pulseras" ? "pulseras" : "anillos"; html = vistaTalles(tipo); titulo = `Guía de ${tipo === "anillos" ? "talles de anillos" : "medidas de pulseras"} · JUMA Joyas`; break; }
       default: html = vistaInicio(); nav = "inicio";
@@ -850,7 +944,7 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { toast("Ingresá un email válido"); inp.focus(); return; }
     btn.disabled = true;
     try {
-      await enviarFormulario("newsletter", { email, nombre: "", origen: "pie de página" });
+      await llamarApi("suscribir", { email, origen: "pie de página" });
       e.target.innerHTML = `<p class="suscribir__ok">¡Listo! Te sumamos a las novedades de JUMA.</p>`;
     } catch (err) { toast("No pudimos suscribirte. Probá de nuevo en un rato."); btn.disabled = false; }
   });

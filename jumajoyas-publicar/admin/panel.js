@@ -211,7 +211,11 @@
     $("#editor").hidden = true; document.body.style.overflow = ""; editando = null;
   }
   $$("[data-cerrar]").forEach(b => b.addEventListener("click", cerrarEditor));
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#editor").hidden) cerrarEditor(); });
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (!$("#editor").hidden) cerrarEditor();
+    else if (!$("#detalle-pedido").hidden) cerrarPedido();
+  });
   form.elements.conTalles.addEventListener("change", () => { $("#bloque-talles").hidden = !form.elements.conTalles.checked; });
   $$("[data-stock]").filter(b => b.closest(".paso-num")).forEach(b => b.addEventListener("click", () => {
     const v = form.elements.stock.value === "" ? 0 : Number(form.elements.stock.value);
@@ -322,12 +326,156 @@
   });
   $("#btn-nuevo").addEventListener("click", () => abrirEditor(null));
 
+  /* ---------- pestaña Pedidos ----------
+     Los pedidos viven en el almacenamiento privado de Netlify (Blobs) y se leen
+     con /api/admin/* (solo con sesión iniciada). */
+  const ESTADOS = {
+    "esperando-pago": { txt: "Esperando pago", cls: "gris" },
+    "comprobante-recibido": { txt: "Comprobante por verificar", cls: "alerta" },
+    "aprobado": { txt: "Transferencia aprobada · por enviar", cls: "ok" },
+    "pagado": { txt: "Pagado (Mercado Pago) · por enviar", cls: "ok" },
+    "enviado": { txt: "Enviado", cls: "fin" },
+    "cancelado": { txt: "Cancelado", cls: "cancelado" }
+  };
+  let listaPedidos = [], filtroPedidos = "pendientes", pedidoAbierto = null, urlComprobante = null;
+
+  async function apiAdmin(ruta, opciones) {
+    if (DEMO) return demoAdmin(ruta, opciones);
+    const r = await fetch("/api/admin/" + ruta, { ...opciones, headers: { "Content-Type": "application/json", Authorization: "Bearer " + await token() } });
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || "Error " + r.status); }
+    return r;
+  }
+  function demoAdmin(ruta) {
+    const ej = [{ codigo: "JUMA-DEMO-A1", fecha: new Date().toISOString(), estado: "comprobante-recibido", cliente: { nombre: "Ana Pérez", email: "ana@mail.com", telefono: "099 123 456" }, newsletter: true, direccion: "Calle 1, Pocitos, Montevideo", notas: "Es para regalo", lineas: [{ cant: 1, nombre: "Carlota · Collar Vale", precio: 890 }], subtotal: 890, costoEnvio: 250, total: 1140, envio: { nombre: "Envío en Montevideo · Zona 1", texto: "$ 250" }, pago: { id: "transferencia", nombre: "Transferencia bancaria" }, comprobante: { tipo: "image/jpeg" } },
+      { codigo: "JUMA-DEMO-B2", fecha: new Date(Date.now() - 864e5).toISOString(), estado: "pagado", cliente: { nombre: "Laura Gómez", email: "laura@mail.com", telefono: "098 765 432" }, newsletter: false, direccion: "", lineas: [{ cant: 1, nombre: "Carlota · Anillo Praga (talle 7)", precio: 990 }], subtotal: 990, costoEnvio: 0, total: 990, envio: { nombre: "Retiro del pedido", texto: "sin costo" }, pago: { id: "mercadopago", nombre: "Mercado Pago" }, mp: { id: 123456 } }];
+    const body = ruta === "pedidos" ? { pedidos: ej } : ruta === "suscriptores" ? { suscriptores: [{ email: "ana@mail.com", nombre: "Ana Pérez", origen: "compra", fecha: new Date().toISOString() }] } : { ok: true };
+    return Promise.resolve(new Response(JSON.stringify(body)));
+  }
+
+  async function cargarPedidos() {
+    $("#resumen-pedidos").textContent = "Cargando…";
+    try {
+      listaPedidos = (await (await apiAdmin("pedidos")).json()).pedidos || [];
+      pintarPedidos();
+      const m = location.hash.match(/^#pedidos\/(.+)$/);
+      if (m) abrirPedido(decodeURIComponent(m[1]));
+    } catch (e) { $("#resumen-pedidos").textContent = ""; aviso("No se pudieron cargar los pedidos: " + e.message, "error"); }
+  }
+  const porVerificar = () => listaPedidos.filter(p => p.estado === "comprobante-recibido").length;
+  function pintarPedidos() {
+    const n = porVerificar(), listos = listaPedidos.filter(p => p.estado === "aprobado" || p.estado === "pagado").length;
+    $("#n-pedidos").textContent = n + listos; $("#n-pedidos").hidden = !(n + listos);
+    $("#resumen-pedidos").textContent = `${listaPedidos.length} pedidos · ${n} comprobante${n === 1 ? "" : "s"} por verificar · ${listos} por enviar`;
+    const f = filtroPedidos;
+    const lista = listaPedidos.filter(p => !f ||
+      (f === "pendientes" && ["comprobante-recibido", "aprobado", "pagado"].includes(p.estado)) ||
+      (f === "listos" && ["aprobado", "pagado"].includes(p.estado)) || p.estado === f);
+    $("#vacio-pedidos").hidden = lista.length > 0;
+    $("#lista-pedidos").innerHTML = lista.map(p => {
+      const e = ESTADOS[p.estado] || { txt: p.estado, cls: "gris" };
+      return `<button class="pedido" data-codigo="${esc(p.codigo)}">
+        <span class="pedido__estado pedido__estado--${e.cls}">${esc(e.txt)}</span>
+        <span class="pedido__principal"><strong>${esc(p.cliente.nombre)}</strong><small>${esc(p.codigo)} · ${new Date(p.fecha).toLocaleString("es-UY", { dateStyle: "short", timeStyle: "short" })}</small></span>
+        <span class="pedido__items">${p.lineas.map(l => `${l.cant} × ${esc(l.nombre)}`).join("<br>")}</span>
+        <span class="pedido__total">${fmt.format(p.total)}<small>${esc(p.pago.nombre)}</small></span>
+      </button>`;
+    }).join("");
+  }
+  $("#filtro-pedidos").addEventListener("click", e => {
+    const b = e.target.closest("[data-filtro]"); if (!b) return;
+    filtroPedidos = b.dataset.filtro;
+    $$("#filtro-pedidos button").forEach(x => x.classList.toggle("activo", x === b));
+    pintarPedidos();
+  });
+  $("#lista-pedidos").addEventListener("click", e => { const b = e.target.closest("[data-codigo]"); if (b) abrirPedido(b.dataset.codigo); });
+  $("#btn-recargar").addEventListener("click", cargarPedidos);
+
+  async function abrirPedido(codigo) {
+    const p = listaPedidos.find(x => x.codigo === codigo); if (!p) return;
+    pedidoAbierto = p;
+    const e = ESTADOS[p.estado] || { txt: p.estado, cls: "gris" };
+    $("#pedido-titulo").textContent = p.codigo;
+    $("#pedido-cuerpo").innerHTML = `
+      <section><span class="pedido__estado pedido__estado--${e.cls}">${esc(e.txt)}</span></section>
+      ${p.pago.id === "transferencia" ? `<section><h3>Comprobante de transferencia</h3>
+        ${p.comprobante ? `<div class="comprobante-vista" id="comprobante-vista">Cargando comprobante…</div>` : `<p class="sutil">La clienta todavía no subió el comprobante.</p>`}
+        <p class="sutil">Verificá que la transferencia de <strong>${fmt.format(p.total)}</strong> haya llegado a tu cuenta antes de aprobar.</p></section>` : ""}
+      ${p.mp ? `<section><h3>Mercado Pago</h3><p>Operación ${esc(p.mp.id)} · ${esc(p.mp.estado || "")}</p></section>` : ""}
+      <section><h3>Productos</h3>
+        ${p.lineas.map(l => `<div class="fila-precio"><span>${l.cant} × ${esc(l.nombre)}</span><span>${fmt.format(l.precio * l.cant)}</span></div>`).join("")}
+        <div class="fila-precio"><span>Envío: ${esc(p.envio.nombre)}</span><span>${esc(p.envio.texto)}</span></div>
+        <div class="fila-precio fila-precio--total"><span>Total</span><span>${fmt.format(p.total)}</span></div>
+      </section>
+      <section><h3>Clienta</h3>
+        <p><strong>${esc(p.cliente.nombre)}</strong><br>
+        <a href="mailto:${esc(p.cliente.email)}?subject=${encodeURIComponent("Tu compra en JUMA Joyas " + p.codigo)}">${esc(p.cliente.email)}</a><br>
+        <a href="tel:${esc(p.cliente.telefono.replace(/\s/g, ""))}">${esc(p.cliente.telefono)}</a></p>
+        ${p.direccion ? `<p><strong>Dirección:</strong> ${esc(p.direccion)}</p>` : ""}
+        ${p.notas ? `<p><strong>Notas:</strong> ${esc(p.notas)}</p>` : ""}
+        <p class="sutil">${p.newsletter ? "📩 Aceptó recibir novedades por mail." : "No pidió recibir novedades."}</p>
+      </section>`;
+    const acciones = [];
+    if (p.estado === "comprobante-recibido") acciones.push(`<button class="btn btn--primario" data-estado="aprobado">✓ Aprobar transferencia (OK)</button>`);
+    if (["aprobado", "pagado"].includes(p.estado)) acciones.push(`<button class="btn btn--primario" data-estado="enviado">Marcar como enviado</button>`);
+    if (!["enviado", "cancelado"].includes(p.estado)) acciones.unshift(`<button class="btn btn--peligro" data-estado="cancelado">Cancelar pedido</button><span class="espacio"></span>`);
+    if (["enviado", "cancelado"].includes(p.estado)) acciones.push(`<span class="espacio"></span><button class="btn btn--claro" data-estado="${p.pago.id === "mercadopago" ? "pagado" : "aprobado"}">Reabrir</button>`);
+    $("#pedido-acciones").innerHTML = acciones.join("");
+    $("#detalle-pedido").hidden = false; document.body.style.overflow = "hidden";
+    if (location.hash !== "#pedidos/" + codigo) history.replaceState(null, "", "#pedidos/" + codigo);
+
+    if (p.comprobante && p.pago.id === "transferencia") {
+      const caja = $("#comprobante-vista");
+      try {
+        if (DEMO) { caja.innerHTML = `<p class="sutil">(Modo demo: acá se ve el comprobante)</p>`; return; }
+        const blob = await (await apiAdmin("comprobante?codigo=" + encodeURIComponent(codigo))).blob();
+        if (urlComprobante) URL.revokeObjectURL(urlComprobante);
+        urlComprobante = URL.createObjectURL(blob);
+        caja.innerHTML = blob.type === "application/pdf"
+          ? `<a class="btn btn--claro" href="${urlComprobante}" target="_blank" rel="noopener">Abrir comprobante (PDF)</a>`
+          : `<a href="${urlComprobante}" target="_blank" rel="noopener"><img src="${urlComprobante}" alt="Comprobante de ${esc(p.cliente.nombre)}"></a>`;
+      } catch (err) { caja.textContent = "No se pudo cargar el comprobante: " + err.message; }
+    }
+  }
+  function cerrarPedido() {
+    $("#detalle-pedido").hidden = true; document.body.style.overflow = ""; pedidoAbierto = null;
+    history.replaceState(null, "", "#pedidos");
+  }
+  $$("[data-cerrar-pedido]").forEach(b => b.addEventListener("click", cerrarPedido));
+  $("#pedido-acciones").addEventListener("click", async e => {
+    const b = e.target.closest("[data-estado]"); if (!b || !pedidoAbierto) return;
+    const estado = b.dataset.estado, p = pedidoAbierto;
+    if (estado === "cancelado" && !confirm(`¿Cancelar el pedido ${p.codigo}?`)) return;
+    b.disabled = true;
+    try {
+      await apiAdmin("estado", { method: "POST", body: JSON.stringify({ codigo: p.codigo, estado }) });
+      p.estado = estado;
+      aviso(estado === "aprobado" ? "Transferencia aprobada. Coordiná el envío con la clienta." : "Pedido actualizado.", "ok");
+      pintarPedidos(); abrirPedido(p.codigo);
+    } catch (err) { aviso(err.message, "error"); b.disabled = false; }
+  });
+
+  // lista de novedades → archivo CSV (se abre con Excel o Google Sheets)
+  $("#btn-suscriptores").addEventListener("click", async () => {
+    try {
+      const lista = (await (await apiAdmin("suscriptores")).json()).suscriptores || [];
+      if (!lista.length) { aviso("Todavía no hay suscriptores."); return; }
+      const celda = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
+      const csv = "﻿" + ["email;nombre;origen;fecha"].concat(lista.map(s => [s.email, s.nombre, s.origen, s.fecha].map(celda).join(";"))).join("\r\n");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      a.download = `suscriptores-juma-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      aviso(`${lista.length} suscriptor${lista.length === 1 ? "" : "es"} descargado${lista.length === 1 ? "" : "s"}.`, "ok");
+    } catch (e) { aviso(e.message, "error"); }
+  });
+
   /* ---------- pestaña Tienda ---------- */
   const formT = $("#form-tienda");
   function pintarTienda() {
     formT.elements.email.value = (config.contacto && config.contacto.email) || "";
     formT.elements.instagram.value = (config.redes && config.redes.instagram) || "";
     formT.elements.envioGratisDesde.value = config.envioGratisDesde || "";
+    formT.elements.datosTransferencia.value = config.datosTransferencia || "";
     $("#zonas").innerHTML = (config.zonasMontevideo || []).map((z, i) => `<label>${esc(z.nombre)}<input type="number" min="0" step="10" data-zona="${i}" value="${z.costo == null ? "" : z.costo}"></label>`).join("");
   }
   formT.addEventListener("submit", async e => {
@@ -338,6 +486,7 @@
       c.contacto.email = formT.elements.email.value.trim();
       c.redes.instagram = formT.elements.instagram.value.trim();
       c.envioGratisDesde = formT.elements.envioGratisDesde.value ? Number(formT.elements.envioGratisDesde.value) : null;
+      c.datosTransferencia = formT.elements.datosTransferencia.value.trim();
       $$("[data-zona]").forEach(inp => { const z = (c.zonasMontevideo || [])[Number(inp.dataset.zona)]; if (z) z.costo = inp.value === "" ? null : Number(inp.value); });
     };
     try {
@@ -353,10 +502,14 @@
   });
 
   /* ---------- pestañas ---------- */
+  let pedidosCargados = false;
   function irA() {
-    const tab = location.hash === "#tienda" ? "tienda" : "productos";
-    $("#vista-productos").hidden = tab !== "productos"; $("#vista-tienda").hidden = tab !== "tienda";
+    const h = location.hash;
+    const tab = h.startsWith("#pedidos") ? "pedidos" : (h === "#tienda" ? "tienda" : "productos");
+    $("#vista-pedidos").hidden = tab !== "pedidos"; $("#vista-productos").hidden = tab !== "productos"; $("#vista-tienda").hidden = tab !== "tienda";
     $$("[data-tab]").forEach(a => a.classList.toggle("activo", a.dataset.tab === tab));
+    if (tab === "pedidos" && !pedidosCargados) { pedidosCargados = true; cargarPedidos(); }
+    else if (tab === "pedidos") { const m = h.match(/^#pedidos\/(.+)$/); if (m && (!pedidoAbierto || pedidoAbierto.codigo !== decodeURIComponent(m[1]))) abrirPedido(decodeURIComponent(m[1])); }
   }
   window.addEventListener("hashchange", irA);
 
@@ -366,6 +519,7 @@
     $("#usuario").textContent = email || "";
     irA();
     cargar().catch(e => aviso("No se pudieron cargar los productos: " + e.message, "error"));
+    if (!pedidosCargados) { pedidosCargados = true; cargarPedidos(); }   // para el contador de la pestaña
   }
   function mostrarIngreso() { $("#panel").hidden = true; $("#ingreso").hidden = false; }
 
