@@ -33,7 +33,7 @@
     if (p.stock === null || p.stock === undefined || p.stock === "") return { clase: "consultar", texto: "Disponibilidad a confirmar", puede: true, max: 99 };
     const s = Number(p.stock);
     if (s <= 0) return { clase: "no", texto: "Agotado", puede: false, max: 0 };
-    return { clase: "ok", texto: s <= 3 ? `Últimas ${s} unidades` : "Disponible", puede: true, max: s };
+    return { clase: "ok", texto: "Disponible", puede: true, max: s };   // no se muestra la cantidad, solo si hay
   }
 
   /* ---------- WhatsApp ---------- */
@@ -73,15 +73,19 @@
     }
     const l = carrito.find(x => claveLinea(x.id, x.talle) === claveLinea(id, talle));
     const actual = l ? l.cant : 0;
-    const nueva = Math.min(actual + (cant || 1), d.max);
+    // el stock es del producto: se cuentan todas las líneas (todos los talles)
+    const enOtras = carrito.filter(x => x.id === id && x !== l).reduce((s, x) => s + x.cant, 0);
+    const nueva = Math.max(actual, Math.min(actual + (cant || 1), d.max - enOtras));
+    if (nueva <= actual) { toast("Ya tenés en el carrito todas las unidades disponibles de esta joya"); return; }
     if (l) l.cant = nueva; else carrito.push(talle ? { id, talle, cant: nueva } : { id, cant: nueva });
     guardarCarrito();
-    toast(nueva > actual ? `Agregaste ${esc(p.nombre)}${talle ? " · " + esc(talle) : ""} <a href="#/carrito">Ver carrito</a>` : "No hay más unidades disponibles");
+    toast(`Agregaste ${esc(p.nombre)}${talle ? " · " + esc(talle) : ""} <a href="#/carrito">Ver carrito</a>`);
   }
   function cambiarCant(clave, delta) {
     const l = carrito.find(x => claveLinea(x.id, x.talle) === clave); if (!l) return;
     const d = disponibilidad(producto(l.id));
-    l.cant = Math.max(1, Math.min(l.cant + delta, d.max));
+    const enOtras = carrito.filter(x => x.id === l.id && x !== l).reduce((s, x) => s + x.cant, 0);
+    l.cant = Math.max(1, Math.min(l.cant + delta, d.max - enOtras));
     guardarCarrito();
   }
   function quitar(clave) { carrito = carrito.filter(x => claveLinea(x.id, x.talle) !== clave); guardarCarrito(); }
@@ -123,7 +127,7 @@
     const d = disponibilidad(p);
     const img2 = p.imagenes[1] ? `<img class="alt" src="${esc(p.imagenes[1])}" alt="" loading="lazy" decoding="async">` : "";
     const etiqueta = d.clase === "no" ? '<span class="etiqueta etiqueta--agotado">Agotado</span>'
-      : (p.destacado ? '<span class="etiqueta">Favorita</span>' : (d.clase === "ok" && d.max <= 3 ? '<span class="etiqueta">Últimas unidades</span>' : ""));
+      : (p.destacado ? '<span class="etiqueta">Favorita</span>' : "");
     return `<article class="tarjeta">
       <div class="tarjeta__img">
         <a href="${urlProducto(p)}" aria-label="${esc(p.nombre)}"><img src="${esc(p.imagenes[0])}" alt="${esc(p.nombre)}" loading="lazy" decoding="async">${img2}</a>
@@ -322,6 +326,7 @@
             <div class="ficha__acciones">
               ${tieneTalles(p) ? `<div class="campo campo--talle"><label for="talle">${esc(p.etiquetaTalle || "Talle")}</label>
                 <select id="talle"><option value="">Elegí tu ${esc((p.etiquetaTalle || "talle").toLowerCase())}…</option>${p.talles.map(t => `<option>${esc(t)}</option>`).join("")}</select></div>` : ""}
+              ${guiaDe(p) ? `<a class="guia-link" href="#/talles/${guiaDe(p)}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 8h18v8H3z M7 8v3 M11 8v4 M15 8v3 M19 8v4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>¿Qué ${guiaDe(p) === "anillos" ? "talle" : "medida"} pido? Ver guía de ${guiaDe(p) === "anillos" ? "talles" : "medidas"}</a>` : ""}
               <div class="ficha__compra">
                 <div class="cantidad" aria-label="Cantidad">
                   <button type="button" data-cant="-1" aria-label="Restar uno">−</button>
@@ -629,6 +634,98 @@
     });
   }
 
+  /* ---------- guías de talles y medidas ---------- */
+  function guiaDe(p) {
+    if (p.categoria === "Anillos") return "anillos";
+    if (p.categoria === "Pulseras") return "pulseras";
+    return "";
+  }
+
+  // talle → diámetro interior (mm). El contorno se calcula (π × diámetro).
+  const TALLES_ANILLO = [["6", 17], ["7", 18], ["8", 19], ["9", 20], ["10", 21], ["11", 22], ["12", 23]];
+  // esclavas rígidas: diámetro interior (cm) → contorno de mano máximo (cm) para que pase
+  const DIAMETROS_ESCLAVA = [["5,5 cm", 5.5], ["6 cm", 6], ["6,5 cm", 6.5], ["7 cm", 7]];
+
+  function vistaTalles(tipo) {
+    const wa = linkWA(`¡Hola JUMA Joyas! Necesito ayuda para elegir ${tipo === "anillos" ? "el talle de un anillo" : "la medida de una pulsera"}.`);
+    const ayuda = `<div class="guia__ayuda"><p><strong>¿Te quedan dudas?</strong> Escribinos y te ayudamos a elegir.</p>${wa ? `<a class="btn btn--wa" href="${wa}" target="_blank" rel="noopener">${icoWA} Consultar por WhatsApp</a>` : ""}</div>`;
+    const pestañas = `<nav class="guia__tabs" aria-label="Guías"><a href="#/talles/anillos" aria-current="${tipo === "anillos"}">Anillos</a><a href="#/talles/pulseras" aria-current="${tipo === "pulseras"}">Pulseras</a></nav>`;
+    const verProductos = cat => `<p class="guia__ver"><a class="subrayado" href="#/catalogo?cat=${cat}">Ver ${cat.toLowerCase()}</a></p>`;
+
+    if (tipo === "anillos") return `
+      <div class="contenedor guia">
+        <nav class="migas" aria-label="Ruta"><a href="#/">Inicio</a> / Guía de talles</nav>
+        <div class="cabeza-pagina cabeza-pagina--izq"><h1>Guía de talles de anillos</h1><p>Encontrá tu talle en dos minutos, solo necesitás una regla.</p></div>
+        ${pestañas}
+        <div class="guia__pasos">
+          <section class="guia__metodo">
+            <svg viewBox="0 0 160 110" class="guia__dibujo" aria-hidden="true"><circle cx="80" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="7" opacity=".85"/><path d="M40 50h80" stroke="var(--bordo)" stroke-width="2"/><path d="M40 44v12M120 44v12" stroke="var(--bordo)" stroke-width="2"/><rect x="20" y="92" width="120" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M30 92v5M40 92v7M50 92v5M60 92v7M70 92v5M80 92v7M90 92v5M100 92v7M110 92v5M120 92v7M130 92v5" stroke="currentColor" stroke-width="1"/></svg>
+            <span class="guia__n">Opción 1</span>
+            <h2>Con un anillo que ya uses</h2>
+            <ol><li>Elegí un anillo que te quede cómodo en el dedo donde vas a usar el nuevo.</li><li>Apoyá una regla sobre el anillo y medí el <strong>diámetro interior</strong>: de borde interno a borde interno, pasando por el centro.</li><li>Buscá esa medida en milímetros en la tabla.</li></ol>
+          </section>
+          <section class="guia__metodo">
+            <svg viewBox="0 0 160 110" class="guia__dibujo" aria-hidden="true"><path d="M62 10c0-6 18-6 18 0v70c0 10-18 10-18 0z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M56 46c10 6 20 6 30 0" fill="none" stroke="var(--bordo)" stroke-width="2.5"/><path d="M86 46l20-10" stroke="var(--bordo)" stroke-width="1.5" stroke-dasharray="3 3"/><circle cx="62" cy="47" r="2.5" fill="var(--bordo)"/><rect x="20" y="92" width="120" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M30 92v5M40 92v7M50 92v5M60 92v7M70 92v5M80 92v7M90 92v5M100 92v7M110 92v5M120 92v7M130 92v5" stroke="currentColor" stroke-width="1"/><path d="M30 86h86" stroke="var(--bordo)" stroke-width="2.5"/></svg>
+            <span class="guia__n">Opción 2</span>
+            <h2>Midiendo tu dedo</h2>
+            <ol><li>Rodeá la base del dedo con una tira fina de papel o un hilo, sin apretar.</li><li>Marcá con un lápiz el punto donde se cruza.</li><li>Estirá la tira y medí con una regla hasta la marca: ese es el <strong>contorno</strong>. Buscalo en la tabla.</li></ol>
+          </section>
+        </div>
+        <section class="guia__tabla">
+          <h2>Tabla de talles</h2>
+          <table><thead><tr><th>Talle</th><th>Diámetro interior</th><th>Contorno del dedo</th></tr></thead>
+          <tbody>${TALLES_ANILLO.map(([t, d]) => `<tr><td><strong>${t}</strong></td><td>${d} mm</td><td>${Math.round(Math.PI * d)} mm</td></tr>`).join("")}</tbody></table>
+          <ul class="guia__tips">
+            <li>Medí al final del día: los dedos suelen estar un poco más hinchados que a la mañana.</li>
+            <li>Si quedás entre dos talles, elegí el más grande, sobre todo en anillos anchos como el Nueva York.</li>
+            <li>Los talles disponibles pueden variar según el modelo: los vas a ver al elegirlo.</li>
+          </ul>
+        </section>
+        ${verProductos("Anillos")}
+        ${ayuda}
+      </div>`;
+
+    return `
+      <div class="contenedor guia">
+        <nav class="migas" aria-label="Ruta"><a href="#/">Inicio</a> / Guía de medidas</nav>
+        <div class="cabeza-pagina cabeza-pagina--izq"><h1>Guía de medidas de pulseras</h1><p>Cómo elegir la medida según el tipo de pulsera.</p></div>
+        ${pestañas}
+        <div class="guia__pasos">
+          <section class="guia__metodo">
+            <svg viewBox="0 0 160 110" class="guia__dibujo" aria-hidden="true"><ellipse cx="80" cy="45" rx="42" ry="30" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M50 33c12 10 48 10 60 0" fill="none" stroke="var(--bordo)" stroke-width="2.5"/><path d="M38 45c0 0 10 14 42 14s42-14 42-14" fill="none" stroke="var(--bordo)" stroke-width="2.5" stroke-dasharray="4 3"/><rect x="20" y="92" width="120" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M30 92v5M40 92v7M50 92v5M60 92v7M70 92v5M80 92v7M90 92v5M100 92v7M110 92v5M120 92v7M130 92v5" stroke="currentColor" stroke-width="1"/></svg>
+            <span class="guia__n">Esclavas rígidas</span>
+            <h2>Medí tu mano, no tu muñeca</h2>
+            <p>Una esclava rígida no se abre: tiene que pasar por la parte más ancha de la mano.</p>
+            <ol><li>Juntá los dedos y llevá el pulgar hacia la palma, como cuando te ponés una pulsera.</li><li>Rodeá la mano por la parte más ancha (a la altura de los nudillos) con una cinta métrica o una tira de papel.</li><li>Elegí el diámetro cuyo contorno sea igual o un poco mayor que esa medida.</li></ol>
+          </section>
+          <section class="guia__metodo">
+            <svg viewBox="0 0 160 110" class="guia__dibujo" aria-hidden="true"><path d="M52 8v70M108 8v70" stroke="currentColor" stroke-width="1.4"/><path d="M52 46c0 8 56 8 56 0" fill="none" stroke="var(--bordo)" stroke-width="2.5"/><path d="M52 46c0-8 56-8 56 0" fill="none" stroke="var(--bordo)" stroke-width="2.5" stroke-dasharray="4 3"/><rect x="20" y="92" width="120" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M30 92v5M40 92v7M50 92v5M60 92v7M70 92v5M80 92v7M90 92v5M100 92v7M110 92v5M120 92v7M130 92v5" stroke="currentColor" stroke-width="1"/></svg>
+            <span class="guia__n">Pulseras de cadena y elastizadas</span>
+            <h2>Medí tu muñeca</h2>
+            <ol><li>Rodeá la muñeca justo por encima del hueso con una cinta métrica o una tira de papel, sin apretar.</li><li>A esa medida sumale 1 a 2 cm para que la pulsera quede cómoda y con movimiento.</li><li>Comparala con el largo de la pulsera, que figura en la ficha de cada producto.</li></ol>
+          </section>
+        </div>
+        <section class="guia__tabla">
+          <h2>Esclavas rígidas: qué diámetro elegir</h2>
+          <table><thead><tr><th>Diámetro de la esclava</th><th>Contorno interior</th><th>Contorno de tu mano (aprox.)</th></tr></thead>
+          <tbody>${DIAMETROS_ESCLAVA.map(([t, d], k) => { const c = Math.PI * d; const ant = k ? Math.PI * DIAMETROS_ESCLAVA[k - 1][1] : 0; return `<tr><td><strong>${t}</strong></td><td>${c.toFixed(1).replace(".", ",")} cm</td><td>${k ? `de ${ant.toFixed(1).replace(".", ",")} a ` : "hasta "}${c.toFixed(1).replace(".", ",")} cm</td></tr>`; }).join("")}</tbody></table>
+          <h2>Pulseras de cadena y elastizadas</h2>
+          <table><thead><tr><th>Tipo</th><th>Cómo calza</th></tr></thead>
+          <tbody>
+            <tr><td><strong>De cadena</strong> (ej.: Brazalete Amanda, 18 cm)</td><td>Ideal para muñecas de hasta 16–17 cm.</td></tr>
+            <tr><td><strong>Elastizadas</strong> (ej.: Pulsera Emi)</td><td>Se estiran y se adaptan a la mayoría de las muñecas.</td></tr>
+            <tr><td><strong>Abiertas o semirrígidas</strong> (ej.: Pulsera Vera)</td><td>Se ajustan presionando suavemente; sirven para la mayoría de las muñecas.</td></tr>
+          </tbody></table>
+          <ul class="guia__tips">
+            <li>Si quedás entre dos diámetros de esclava, elegí el más grande: una esclava chica no va a pasar por la mano.</li>
+            <li>Las medidas de cada pulsera están en la ficha del producto, en "Medidas".</li>
+          </ul>
+        </section>
+        ${verProductos("Pulseras")}
+        ${ayuda}
+      </div>`;
+  }
+
   function vistaContacto() {
     const c = CONFIG.contacto || {}, r = CONFIG.redes || {};
     const ico = {
@@ -705,6 +802,7 @@
       case "pedido": html = vistaPedido(); montar = montarPedido; titulo = "Finalizar pedido · JUMA Joyas"; break;
       case "confirmar": html = vistaConfirmar(); montar = pedidoActual ? montarConfirmar : montarCarrito; titulo = "Confirmar pedido · JUMA Joyas"; break;
       case "contacto": html = vistaContacto(); nav = "contacto"; titulo = "Contacto · JUMA Joyas"; break;
+      case "talles": { const tipo = partes[1] === "pulseras" ? "pulseras" : "anillos"; html = vistaTalles(tipo); titulo = `Guía de ${tipo === "anillos" ? "talles de anillos" : "medidas de pulseras"} · JUMA Joyas`; break; }
       default: html = vistaInicio(); nav = "inicio";
     }
     $app.innerHTML = html;

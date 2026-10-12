@@ -471,3 +471,28 @@ body.con-barra .toast { bottom: calc(92px + env(safe-area-inset-bottom)); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 .campo--talle { margin-bottom: 4px; }
 .campo--talle select { max-width: 240px; }
+
+/* ---------- Guías de talles y medidas ---------- */
+.guia-link { display: inline-flex; align-items: center; gap: 8px; font-size: .84rem; color: var(--bordo); text-decoration: underline; text-underline-offset: 3px; margin: 2px 0 4px; }
+.guia-link:hover { color: var(--bordo-osc); }
+.guia { padding-bottom: 64px; max-width: 980px; }
+.guia h2 { font-size: 1.05rem; font-family: var(--sans); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; margin: 6px 0 10px; }
+.guia__tabs { display: flex; gap: 8px; margin: 8px 0 24px; }
+.guia__tabs a { padding: 8px 18px; border: 1px solid var(--linea); border-radius: 4px; text-decoration: none; font-size: .86rem; }
+.guia__tabs a[aria-current="true"] { background: var(--texto); border-color: var(--texto); color: #fff; }
+.guia__pasos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .guia__pasos { grid-template-columns: 1fr; } }
+.guia__metodo { background: var(--crema); border-radius: var(--radio); padding: 24px; }
+.guia__metodo ol { padding-left: 20px; margin: 0; display: grid; gap: 6px; font-size: .93rem; }
+.guia__metodo p { font-size: .93rem; color: var(--texto-suave); }
+.guia__dibujo { width: 150px; height: auto; color: var(--texto); display: block; margin: 0 auto 14px; }
+.guia__n { display: inline-block; font-size: .7rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--bordo); margin-bottom: 4px; }
+.guia__tabla { margin-top: 32px; }
+.guia__tabla table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: .93rem; }
+.guia__tabla th { text-align: left; font-weight: 500; font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; color: var(--texto-suave); padding: 10px 12px; border-bottom: 1px solid var(--texto); }
+.guia__tabla td { padding: 11px 12px; border-bottom: 1px solid var(--linea); }
+.guia__tabla tbody tr:nth-child(odd) td { background: #fdfbfa; }
+.guia__tips { color: var(--texto-suave); font-size: .9rem; padding-left: 20px; display: grid; gap: 6px; }
+.guia__ver { margin: 8px 0 28px; }
+.guia__ayuda { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--rosa); border-radius: var(--radio); padding: 20px 24px; }
+.guia__ayuda p { margin: 0; color: var(--bordo-osc); }

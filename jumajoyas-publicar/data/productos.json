@@ -10,7 +10,7 @@
       "color": "Rojo con dorado",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "31 x 29 mm",
-      "stock": null,
+      "stock": 1,
       "destacado": true,
       "activo": true,
       "imagenes": ["img/productos/fiorella-rojo-1.webp", "img/productos/fiorella-rojo-2.webp", "img/productos/fiorella-rojo-3.webp"]
@@ -25,7 +25,7 @@
       "color": "Negro con dorado",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "31 x 29 mm",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/fiorella-negro-1.webp", "img/productos/fiorella-blanco-negro.webp"]
@@ -40,7 +40,7 @@
       "color": "Blanco con dorado",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "31 x 29 mm",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/fiorella-blanco-1.webp", "img/productos/fiorella-blanco-negro.webp"]
@@ -55,7 +55,7 @@
       "color": "Plateado",
       "material": "Acero quirúrgico",
       "medidas": "4 cm",
-      "stock": null,
+      "stock": 1,
       "destacado": true,
       "activo": true,
       "imagenes": ["img/productos/florencia-1.webp", "img/productos/florencia-2.webp", "img/productos/florencia-3.webp"]
@@ -70,7 +70,7 @@
       "color": "Dorado",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "3 cm",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/malva-oro-1.webp"]
@@ -85,7 +85,7 @@
       "color": "Dorado con piedras negras",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "13 mm de diámetro",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/zana-1.webp", "img/productos/zana-2.webp"]
@@ -102,7 +102,7 @@
       "medidas": "12 mm de ancho",
       "talles": ["6", "7", "8", "9", "10", "11", "12"],
       "etiquetaTalle": "Talle",
-      "stock": null,
+      "stock": 1,
       "destacado": true,
       "activo": true,
       "imagenes": ["img/productos/nueva-york-gris-1.webp"]
@@ -119,7 +119,7 @@
       "medidas": "Frente de 2 cm",
       "talles": ["6", "7", "8", "9"],
       "etiquetaTalle": "Talle",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/delhi-oro-1.webp", "img/productos/delhi-oro-2.webp", "img/productos/delhi-oro-3.webp"]
@@ -136,7 +136,7 @@
       "medidas": "",
       "talles": ["6", "7", "8", "9"],
       "etiquetaTalle": "Talle",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/praga-1.webp", "img/productos/praga-2.webp"]
@@ -151,7 +151,7 @@
       "color": "Dorado",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "Cuentas de 4 mm · elastizada",
-      "stock": null,
+      "stock": 1,
       "destacado": true,
       "activo": true,
       "imagenes": ["img/productos/emi-1.webp", "img/productos/emi-2.webp"]
@@ -166,7 +166,7 @@
       "color": "Dorado",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "4 cm de ancho",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/vera-1.webp", "img/productos/vera-2.webp"]
@@ -183,7 +183,7 @@
       "medidas": "Diámetro a elección: 5,5 · 6 · 6,5 · 7 cm",
       "talles": ["5,5 cm", "6 cm", "6,5 cm", "7 cm"],
       "etiquetaTalle": "Diámetro",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/esclava-maria-1.webp", "img/productos/esclava-maria-2.webp"]
@@ -198,7 +198,7 @@
       "color": "Dorado",
       "material": "Acero quirúrgico con baño de oro",
       "medidas": "18 cm de largo",
-      "stock": null,
+      "stock": 1,
       "destacado": true,
       "activo": true,
       "imagenes": ["img/productos/amanda-oro-1.webp", "img/productos/amanda-oro-2.webp", "img/productos/amanda-oro-3.webp"]
@@ -213,7 +213,7 @@
       "color": "Dorado con circonia",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "41 cm + 5 cm de extensión",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/pandora-1.webp", "img/productos/pandora-2.webp", "img/productos/pandora-3.webp"]
@@ -228,7 +228,7 @@
       "color": "Dorado con nácar",
       "material": "Acero quirúrgico con baño de oro 18k",
       "medidas": "40 cm + 5 cm de extensión",
-      "stock": null,
+      "stock": 1,
       "destacado": true,
       "activo": true,
       "imagenes": ["img/productos/vale-1.webp", "img/productos/vale-2.webp", "img/productos/vale-3.webp"]
@@ -243,7 +243,7 @@
       "color": "Dorado con circonita rosa",
       "material": "Acero quirúrgico con baño de oro 14k",
       "medidas": "43 cm de largo",
-      "stock": null,
+      "stock": 1,
       "destacado": false,
       "activo": true,
       "imagenes": ["img/productos/punto-luz-rosa-1.webp"]
