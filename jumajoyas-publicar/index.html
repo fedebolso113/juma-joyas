@@ -102,12 +102,5 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/app.js" defer></script>
-  <script>
-    // Enlaces de invitación / recuperación de contraseña del panel (Netlify Identity)
-    // llegan a la página principal: se mandan al panel, que es donde se crea o cambia la contraseña
-    if (/(invite|recovery|confirmation|email_change)_token=/.test(location.hash)) {
-      location.replace("/admin/" + location.hash);
-    }
-  </script>
 </body>
 </html>

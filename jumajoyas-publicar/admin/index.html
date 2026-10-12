@@ -10,8 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="panel.css">
-  <!-- Inicio de sesión con email y contraseña (Netlify Identity, solo usuarios invitados) -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
   <!-- Pantalla de ingreso -->
@@ -20,8 +18,12 @@
       <img src="../img/logo-mark.svg" alt="" width="64" height="64">
       <p class="ingreso__marca">JUMA</p>
       <p class="ingreso__sub">Panel de administración</p>
-      <button class="btn btn--primario btn--bloque" id="btn-ingresar">Ingresar</button>
-      <p class="ingreso__ayuda">¿Olvidaste tu contraseña? Tocá "Ingresar" y después "Forgot password?".</p>
+      <form class="ingreso__form" id="form-ingreso" novalidate>
+        <label>Mail<input name="email" type="email" autocomplete="username" required></label>
+        <label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+        <p class="ingreso__error" id="ingreso-error" hidden></p>
+        <button class="btn btn--primario btn--bloque" type="submit">Ingresar</button>
+      </form>
       <a class="ingreso__volver" href="/">← Volver a la tienda</a>
     </div>
   </section>
@@ -118,7 +120,6 @@
           </fieldset>
           <div class="acciones"><button class="btn btn--primario" type="submit">Guardar cambios</button></div>
         </form>
-        <p class="sutil avanzado">¿Necesitás cambiar otra cosa (medios de pago, textos)? Usá el <a href="cms/">editor avanzado</a>.</p>
       </section>
     </main>
   </div>

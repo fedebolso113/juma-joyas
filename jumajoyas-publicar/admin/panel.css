@@ -189,3 +189,10 @@ a { color: var(--bordo); }
 #pedido-cuerpo p { margin: 0 0 8px; font-size: .93rem; }
 .tarjeta-form textarea { width: 100%; border: 1px solid #d9d1ce; border-radius: 6px; padding: 8px 11px; font-size: .93rem; resize: vertical; color: var(--texto); }
 .tarjeta-form textarea:focus { outline: none; border-color: var(--bordo); box-shadow: 0 0 0 3px rgba(122, 22, 48, .12); }
+
+/* formulario de ingreso */
+.ingreso__form { display: grid; gap: 12px; text-align: left; }
+.ingreso__form label { display: grid; gap: 5px; font-size: .84rem; color: var(--suave); }
+.ingreso__form input { width: 100%; min-height: 44px; border: 1px solid #d9d1ce; border-radius: 6px; padding: 8px 12px; font-size: .95rem; }
+.ingreso__form input:focus { outline: none; border-color: var(--bordo); box-shadow: 0 0 0 3px rgba(122, 22, 48, .12); }
+.ingreso__error { color: var(--peligro); font-size: .86rem; margin: 0; }

@@ -645,7 +645,6 @@
     c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
     return { tipo: "image/jpeg", blob: await new Promise(r => c.toBlob(r, "image/jpeg", 0.85)) };
   }
-  const aBase64 = blob => new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = mal; r.readAsDataURL(blob); });
   function montarFormComprobante() {
     const form = document.getElementById("form-comprobante"); if (!form) return;
     const inp = form.elements.archivo, nombre = document.getElementById("comprobante-nombre");
@@ -659,7 +658,12 @@
       try {
         const { tipo, blob } = await prepararComprobante(inp.files[0]);
         if (blob.size > 4 * 1024 * 1024) throw new Error("El archivo es muy grande (máximo 4 MB).");
-        await llamarApi("comprobante", { codigo, email, tipo, archivo: await aBase64(blob) });
+        if (location.hostname === "localhost") await simularApi("comprobante", { codigo, email, tipo });
+        else {
+          const r = await fetch(`/api/comprobante?codigo=${encodeURIComponent(codigo)}&email=${encodeURIComponent(email)}`, { method: "POST", headers: { "Content-Type": tipo }, body: blob });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(j.error || "No pudimos enviar el comprobante.");
+        }
         form.outerHTML = `<div class="comprobante-ok"><strong>¡Recibimos tu comprobante!</strong><p>${MENSAJE_VERIFICACION}</p></div>`;
       } catch (err) {
         toast(err.message || "No pudimos enviar el comprobante. Intentá de nuevo.");

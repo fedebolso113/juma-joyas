@@ -1,0 +1,20 @@
+// Configuración de Cloudflare (Workers) para JUMA Joyas.
+// Publicar: npx wrangler deploy   (desde la carpeta del repositorio)
+{
+  "name": "juma-joyas",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "jumajoyas-publicar",
+    "binding": "ASSETS",
+    // el Worker solo atiende estas rutas; el resto de la tienda se sirve directo (gratis e ilimitado)
+    "run_worker_first": ["/api/*", "/data/*", "/img/subidas/*"]
+  },
+  "kv_namespaces": [
+    { "binding": "DATOS", "id": "ea513cef1864486b85cd3f3384334cb2" }
+  ],
+  "vars": {
+    "ADMIN_EMAIL": "info@jumajoyas.com.uy"
+  },
+  "observability": { "enabled": true }
+}

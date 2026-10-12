@@ -1,19 +1,15 @@
 /* ==========================================================
-   Panel de administración JUMA Joyas
-   - Ingreso: Netlify Identity (email y contraseña, solo invitados)
-   - Guardado: Git Gateway de Netlify → commit en GitHub → la tienda
-     se vuelve a publicar sola en 1–2 minutos.
+   Panel de administración JUMA Joyas (Cloudflare)
+   - Ingreso: mail y contraseña (la contraseña es un secreto en Cloudflare).
+   - Guardado: productos, configuración y fotos se guardan en el
+     almacenamiento de Cloudflare (KV). La tienda los lee al instante:
+     no hace falta volver a publicar.
    - Modo demo (solo en localhost con ?demo): muestra el panel con los
      datos locales y no guarda nada. Sirve para probar el diseño.
    ========================================================== */
 (function () {
   "use strict";
 
-  const RAIZ = "jumajoyas-publicar/";               // carpeta de la tienda dentro del repositorio
-  const RUTA_PRODUCTOS = RAIZ + "data/productos.json";
-  const RUTA_CONFIG = RAIZ + "data/config.json";
-  const CARPETA_FOTOS = "img/productos/";
-  const API = "/.netlify/git/github";
   const DEMO = location.hostname === "localhost" && new URLSearchParams(location.search).has("demo");
 
   const $ = s => document.querySelector(s);
@@ -23,10 +19,10 @@
   const normalizar = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   const slug = s => normalizar(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "producto";
 
-  let productos = [], shaProductos = null;
-  let config = {}, shaConfig = null;
+  let productos = [];
+  let config = {};
   let editando = null;          // producto que se está editando (copia)
-  let fotosEditor = [];         // [{ src, nueva: bool, blob?, nombre? }]
+  let fotosEditor = [];         // [{ src, nueva: bool, blob?, ruta? }]
 
   /* ---------- avisos ---------- */
   let avisoT;
@@ -36,60 +32,28 @@
     clearTimeout(avisoT); avisoT = setTimeout(() => a.classList.remove("visible"), tipo === "error" ? 7000 : 4000);
   }
 
-  /* ---------- GitHub a través de Git Gateway ---------- */
-  async function token() {
-    const u = netlifyIdentity.currentUser();
-    if (!u) throw new Error("Tu sesión terminó. Volvé a ingresar.");
-    return u.jwt();
+  /* ---------- API del panel (la sesión va en una cookie segura) ---------- */
+  async function apiPanel(ruta, opciones) {
+    const r = await fetch("/api/admin/" + ruta, { credentials: "same-origin", ...opciones });
+    if (r.status === 401) { mostrarIngreso(); throw new Error("Tu sesión terminó. Volvé a ingresar."); }
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || "Error " + r.status); }
+    return r;
   }
-  async function api(ruta, opciones) {
-    const r = await fetch(API + ruta, { ...opciones, headers: { "Content-Type": "application/json", Authorization: "Bearer " + await token() } });
-    if (!r.ok) {
-      const txt = await r.text();
-      if (r.status === 401 || r.status === 403) throw new Error("No tenés permiso para guardar. Revisá que Git Gateway esté activado en Netlify.");
-      if (r.status === 409) { const e = new Error("conflicto"); e.conflicto = true; throw e; }
-      throw new Error("Error " + r.status + ": " + txt.slice(0, 120));
-    }
-    return r.json();
-  }
-  const aBase64 = texto => btoa(unescape(encodeURIComponent(texto)));
-  const deBase64 = b64 => decodeURIComponent(escape(atob(b64.replace(/\n/g, ""))));
-  async function leerJson(ruta) {
-    const d = await api("/contents/" + ruta + "?ref=main&t=" + Date.now());
-    return { datos: JSON.parse(deBase64(d.content)), sha: d.sha };
-  }
-  async function escribir(ruta, contenidoBase64, sha, mensaje) {
-    const body = { message: mensaje, content: contenidoBase64, branch: "main" };
-    if (sha) body.sha = sha;
-    const d = await api("/contents/" + ruta, { method: "PUT", body: JSON.stringify(body) });
-    return d.content.sha;
-  }
-  const json = obj => JSON.stringify(obj, null, 2) + "\n";
+  const enviarJson = (ruta, datos) => apiPanel(ruta, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(datos) });
 
   /* ---------- carga ---------- */
   async function cargar() {
-    if (DEMO) {
-      productos = (await (await fetch("../data/productos.json", { cache: "no-store" })).json()).productos;
-      config = await (await fetch("../data/config.json", { cache: "no-store" })).json();
-    } else {
-      const p = await leerJson(RUTA_PRODUCTOS); productos = p.datos.productos || []; shaProductos = p.sha;
-      const c = await leerJson(RUTA_CONFIG); config = c.datos; shaConfig = c.sha;
-    }
+    const t = Date.now();
+    productos = (await (await fetch("../data/productos.json?t=" + t, { cache: "no-store" })).json()).productos || [];
+    config = await (await fetch("../data/config.json?t=" + t, { cache: "no-store" })).json();
     armarFiltros(); pintarGrilla(); pintarTienda();
   }
 
-  /* ---------- guardado de productos (con reintento si alguien guardó antes) ---------- */
-  async function guardarProductos(cambiar, mensaje) {
+  /* ---------- guardado de productos ---------- */
+  async function guardarProductos(cambiar) {
     cambiar(productos);
     if (DEMO) { aviso("Modo demo: no se guardó nada.", "ok"); return; }
-    try {
-      shaProductos = await escribir(RUTA_PRODUCTOS, aBase64(json({ productos })), shaProductos, mensaje);
-    } catch (e) {
-      if (!e.conflicto) throw e;
-      const p = await leerJson(RUTA_PRODUCTOS);       // otra persona guardó: se toma lo último y se reaplica el cambio
-      productos = p.datos.productos || []; cambiar(productos);
-      shaProductos = await escribir(RUTA_PRODUCTOS, aBase64(json({ productos })), p.sha, mensaje);
-    }
+    await enviarJson("productos", { productos });
   }
 
   /* ---------- filtros y grilla ---------- */
@@ -160,7 +124,7 @@
       const cambios = [...pendientesRapidos.entries()]; pendientesRapidos.clear();
       try {
         await guardarProductos(lista => cambios.forEach(([i, val]) => { const a = lista.find(x => x.id === i); if (a) { a.stock = val.stock; a.activo = val.activo; } }), "Panel: stock / visibilidad");
-        aviso("Guardado. La tienda se actualiza en 1–2 minutos.", "ok");
+        aviso("Guardado. Ya se ve en la tienda.", "ok");
       } catch (e) { aviso(e.message, "error"); }
     }, 1200);
   }
@@ -263,8 +227,6 @@
   ["dragleave", "drop"].forEach(ev => zona.addEventListener(ev, e => { e.preventDefault(); zona.classList.remove("arrastrando"); }));
   zona.addEventListener("drop", e => agregarArchivos(e.dataTransfer.files));
 
-  const blobABase64 = blob => new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = mal; r.readAsDataURL(blob); });
-
   form.addEventListener("submit", async e => {
     e.preventDefault();
     $$(".campo-error").forEach(x => x.classList.remove("campo-error"));
@@ -296,10 +258,10 @@
       for (const f of fotosEditor) {
         if (!f.nueva) { rutas.push(f.ruta); continue; }
         n++;
-        const ruta = `${CARPETA_FOTOS}${p.id}-${Date.now().toString(36)}-${n}.webp`;
         btn.textContent = `Subiendo foto ${n}…`;
-        if (!DEMO) await escribir(RAIZ + ruta, await blobABase64(f.blob), null, `Panel: foto de ${p.nombre}`);
-        rutas.push(ruta);
+        if (DEMO) { rutas.push(f.src); continue; }
+        const r = await apiPanel("imagen?nombre=" + encodeURIComponent(p.id), { method: "POST", headers: { "Content-Type": "image/webp" }, body: f.blob });
+        rutas.push((await r.json()).ruta);
       }
       p.imagenes = rutas;
       // 2) guardar el producto
@@ -310,7 +272,7 @@
         if (i >= 0) lista[i] = p; else lista.unshift(p);
       }, `Panel: ${nuevo ? "nuevo producto" : "editar"} ${p.nombre}`);
       cerrarEditor(); armarFiltros(); pintarGrilla();
-      aviso("Guardado. La tienda se actualiza en 1–2 minutos.", "ok");
+      aviso("Guardado. Ya se ve en la tienda.", "ok");
     } catch (err) {
       aviso(err.message, "error");
     } finally { btn.disabled = false; btn.textContent = "Guardar"; }
@@ -339,11 +301,9 @@
   };
   let listaPedidos = [], filtroPedidos = "pendientes", pedidoAbierto = null, urlComprobante = null;
 
-  async function apiAdmin(ruta, opciones) {
+  function apiAdmin(ruta, opciones) {
     if (DEMO) return demoAdmin(ruta, opciones);
-    const r = await fetch("/api/admin/" + ruta, { ...opciones, headers: { "Content-Type": "application/json", Authorization: "Bearer " + await token() } });
-    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || "Error " + r.status); }
-    return r;
+    return apiPanel(ruta, { ...opciones, headers: { "Content-Type": "application/json" } });
   }
   function demoAdmin(ruta) {
     const ej = [{ codigo: "JUMA-DEMO-A1", fecha: new Date().toISOString(), estado: "comprobante-recibido", cliente: { nombre: "Ana Pérez", email: "ana@mail.com", telefono: "099 123 456" }, newsletter: true, direccion: "Calle 1, Pocitos, Montevideo", notas: "Es para regalo", lineas: [{ cant: 1, nombre: "Carlota · Collar Vale", precio: 890 }], subtotal: 890, costoEnvio: 250, total: 1140, envio: { nombre: "Envío en Montevideo · Zona 1", texto: "$ 250" }, pago: { id: "transferencia", nombre: "Transferencia bancaria" }, comprobante: { tipo: "image/jpeg" } },
@@ -493,9 +453,8 @@
       aplicar(config);
       if (DEMO) aviso("Modo demo: no se guardó nada.", "ok");
       else {
-        try { shaConfig = await escribir(RUTA_CONFIG, aBase64(json(config)), shaConfig, "Panel: datos de la tienda"); }
-        catch (err) { if (!err.conflicto) throw err; const c = await leerJson(RUTA_CONFIG); config = c.datos; aplicar(config); shaConfig = await escribir(RUTA_CONFIG, aBase64(json(config)), c.sha, "Panel: datos de la tienda"); }
-        aviso("Guardado. La tienda se actualiza en 1–2 minutos.", "ok");
+        await enviarJson("config", config);
+        aviso("Guardado. Ya se ve en la tienda.", "ok");
       }
     } catch (err) { aviso(err.message, "error"); }
     finally { btn.disabled = false; }
@@ -523,10 +482,28 @@
   }
   function mostrarIngreso() { $("#panel").hidden = true; $("#ingreso").hidden = false; }
 
+  $("#form-ingreso").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target, btn = f.querySelector("button"), err = $("#ingreso-error");
+    err.hidden = true; btn.disabled = true; btn.textContent = "Ingresando…";
+    try {
+      const r = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin",
+        body: JSON.stringify({ email: f.elements.email.value.trim(), password: f.elements.password.value }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || "No se pudo ingresar.");
+      f.elements.password.value = "";
+      mostrarPanel(f.elements.email.value.trim());
+    } catch (ex) { err.textContent = ex.message; err.hidden = false; }
+    finally { btn.disabled = false; btn.textContent = "Ingresar"; }
+  });
+  $("#btn-salir").addEventListener("click", async () => {
+    await fetch("/api/logout", { method: "POST", credentials: "same-origin" }).catch(() => {});
+    mostrarIngreso();
+  });
+
   if (DEMO) { mostrarPanel("modo demo"); return; }
-  netlifyIdentity.on("init", u => u ? mostrarPanel(u.email) : mostrarIngreso());
-  netlifyIdentity.on("login", u => { netlifyIdentity.close(); mostrarPanel(u.email); });
-  netlifyIdentity.on("logout", mostrarIngreso);
-  $("#btn-ingresar").addEventListener("click", () => netlifyIdentity.open("login"));
-  $("#btn-salir").addEventListener("click", () => netlifyIdentity.logout());
+  // ¿ya hay una sesión abierta?
+  fetch("/api/admin/yo", { credentials: "same-origin" })
+    .then(r => r.ok ? r.json().then(j => mostrarPanel(j.email)) : mostrarIngreso())
+    .catch(mostrarIngreso);
 })();
