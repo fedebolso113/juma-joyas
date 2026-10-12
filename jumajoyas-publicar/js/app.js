@@ -50,8 +50,11 @@
   }
 
   /* ---------- carrito ---------- */
+  // cada línea del carrito es un producto + talle (los productos sin talle tienen talle vacío)
+  const claveLinea = (id, talle) => id + "|" + (talle || "");
+  function nombreLinea(l) { return (l.p.marca ? l.p.marca + " · " : "") + l.p.nombre + (l.talle ? ` (${(l.p.etiquetaTalle || "Talle").toLowerCase()} ${l.talle})` : ""); }
   function lineasCarrito() {
-    return carrito.map(l => ({ ...l, p: producto(l.id) })).filter(l => l.p && l.p.activo !== false);
+    return carrito.map(l => ({ ...l, clave: claveLinea(l.id, l.talle), p: producto(l.id) })).filter(l => l.p && l.p.activo !== false);
   }
   function subtotal() { return lineasCarrito().reduce((s, l) => s + l.p.precio * l.cant, 0); }
   function guardarCarrito() { guardarLS(LS_CARRITO, carrito); pintarContador(); }
@@ -60,23 +63,29 @@
     const el = document.getElementById("carrito-n");
     el.textContent = n; el.hidden = n === 0;
   }
-  function agregar(id, cant) {
+  function agregar(id, cant, talle) {
     const p = producto(id); if (!p) return;
     const d = disponibilidad(p); if (!d.puede) return;
-    const l = carrito.find(x => x.id === id);
+    if (tieneTalles(p) && !talle) {   // desde la tarjeta: hay que elegir talle en la ficha
+      location.hash = urlProducto(p);
+      setTimeout(() => toast(`Elegí tu ${(p.etiquetaTalle || "talle").toLowerCase()} para agregarlo`), 50);
+      return;
+    }
+    const l = carrito.find(x => claveLinea(x.id, x.talle) === claveLinea(id, talle));
     const actual = l ? l.cant : 0;
     const nueva = Math.min(actual + (cant || 1), d.max);
-    if (l) l.cant = nueva; else carrito.push({ id, cant: nueva });
+    if (l) l.cant = nueva; else carrito.push(talle ? { id, talle, cant: nueva } : { id, cant: nueva });
     guardarCarrito();
-    toast(nueva > actual ? `Agregaste ${esc(p.nombre)} <a href="#/carrito">Ver carrito</a>` : "No hay más unidades disponibles");
+    toast(nueva > actual ? `Agregaste ${esc(p.nombre)}${talle ? " · " + esc(talle) : ""} <a href="#/carrito">Ver carrito</a>` : "No hay más unidades disponibles");
   }
-  function cambiarCant(id, delta) {
-    const l = carrito.find(x => x.id === id); if (!l) return;
-    const p = producto(id); const d = disponibilidad(p);
+  function cambiarCant(clave, delta) {
+    const l = carrito.find(x => claveLinea(x.id, x.talle) === clave); if (!l) return;
+    const d = disponibilidad(producto(l.id));
     l.cant = Math.max(1, Math.min(l.cant + delta, d.max));
     guardarCarrito();
   }
-  function quitar(id) { carrito = carrito.filter(x => x.id !== id); guardarCarrito(); }
+  function quitar(clave) { carrito = carrito.filter(x => claveLinea(x.id, x.talle) !== clave); guardarCarrito(); }
+  function tieneTalles(p) { return Array.isArray(p.talles) && p.talles.length > 0; }
 
   let toastT;
   function toast(html) {
@@ -311,6 +320,8 @@
             <span class="disp disp--${d.clase}">${d.texto}</span>
             <p class="ficha__desc">${esc(p.descripcion)}</p>
             <div class="ficha__acciones">
+              ${tieneTalles(p) ? `<div class="campo campo--talle"><label for="talle">${esc(p.etiquetaTalle || "Talle")}</label>
+                <select id="talle"><option value="">Elegí tu ${esc((p.etiquetaTalle || "talle").toLowerCase())}…</option>${p.talles.map(t => `<option>${esc(t)}</option>`).join("")}</select></div>` : ""}
               <div class="ficha__compra">
                 <div class="cantidad" aria-label="Cantidad">
                   <button type="button" data-cant="-1" aria-label="Restar uno">−</button>
@@ -358,7 +369,12 @@
       document.getElementById("cant").textContent = cant;
     }));
     const btn = document.getElementById("agregar");
-    if (btn) btn.addEventListener("click", () => agregar(p.id, cant));
+    const selTalle = document.getElementById("talle");
+    if (btn) btn.addEventListener("click", () => {
+      if (selTalle && !selTalle.value) { selTalle.focus(); selTalle.closest(".campo").classList.add("campo--error"); toast(`Elegí tu ${(p.etiquetaTalle || "talle").toLowerCase()}`); return; }
+      agregar(p.id, cant, selTalle ? selTalle.value : "");
+    });
+    if (selTalle) selTalle.addEventListener("change", () => selTalle.closest(".campo").classList.remove("campo--error"));
   }
 
   function vistaCarrito() {
@@ -374,17 +390,18 @@
               <div class="linea-carrito">
                 <a href="${urlProducto(l.p)}"><img src="${esc(l.p.imagenes[0])}" alt="${esc(l.p.nombre)}" loading="lazy"></a>
                 <div>
+                  ${l.p.marca ? `<span class="tarjeta__marca">${esc(l.p.marca)}</span>` : ""}
                   <a class="linea-carrito__nombre" href="${urlProducto(l.p)}">${esc(l.p.nombre)}</a>
-                  <div class="linea-carrito__meta">${precio(l.p.precio)} c/u</div>
+                  <div class="linea-carrito__meta">${l.talle ? `${esc(l.p.etiquetaTalle || "Talle")}: ${esc(l.talle)} · ` : ""}${precio(l.p.precio)} c/u</div>
                 </div>
                 <div class="linea-carrito__der">
                   <div class="cantidad">
-                    <button data-menos="${esc(l.id)}" aria-label="Restar uno">−</button>
+                    <button data-menos="${esc(l.clave)}" aria-label="Restar uno">−</button>
                     <span>${l.cant}</span>
-                    <button data-mas="${esc(l.id)}" aria-label="Sumar uno">+</button>
+                    <button data-mas="${esc(l.clave)}" aria-label="Sumar uno">+</button>
                   </div>
                   <strong class="precio">${precio(l.p.precio * l.cant)}</strong>
-                  <button class="quitar" data-quitar="${esc(l.id)}">Quitar</button>
+                  <button class="quitar" data-quitar="${esc(l.clave)}">Quitar</button>
                 </div>
               </div>`).join("")}
             <p style="margin-top:18px"><a class="enlace" href="#/catalogo">← Seguir comprando</a></p>
@@ -483,7 +500,7 @@
           </form>
           <aside class="resumen">
             <h2>Tu pedido</h2>
-            <div class="resumen__items">${lineas.map(l => `<div><span>${l.cant} × ${esc(l.p.nombre)}</span><span>${precio(l.p.precio * l.cant)}</span></div>`).join("")}</div>
+            <div class="resumen__items">${lineas.map(l => `<div><span>${l.cant} × ${esc(nombreLinea(l))}</span><span>${precio(l.p.precio * l.cant)}</span></div>`).join("")}</div>
             <div class="resumen__fila"><span>Subtotal</span><span>${precio(st)}</span></div>
             <div class="resumen__fila"><span>Envío</span><span id="r-envio">—</span></div>
             <div class="resumen__fila resumen__fila--total"><span>Total</span><span id="r-total">${precio(st)}</span></div>
@@ -549,7 +566,7 @@
       const c = costoEnvio(envio, st, datos.barrio);
       const f = new Date();
       const codigo = "JUMA-" + f.toISOString().slice(2, 10).replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
-      pedidoActual = { codigo, datos, envio, zona, pago, costoEnvio: c, lineas: lineasCarrito().map(l => ({ nombre: (l.p.marca ? l.p.marca + " · " : "") + l.p.nombre, cant: l.cant, precio: l.p.precio })), subtotal: st };
+      pedidoActual = { codigo, datos, envio, zona, pago, costoEnvio: c, lineas: lineasCarrito().map(l => ({ nombre: nombreLinea(l), cant: l.cant, precio: l.p.precio })), subtotal: st };
       location.hash = "#/confirmar";
     });
   }

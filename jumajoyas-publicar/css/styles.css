@@ -469,3 +469,5 @@ body.con-barra .toast { bottom: calc(92px + env(safe-area-inset-bottom)); }
 .toast a { color: var(--rosa); margin-left: 8px; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+.campo--talle { margin-bottom: 4px; }
+.campo--talle select { max-width: 240px; }

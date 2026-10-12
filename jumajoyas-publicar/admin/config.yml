@@ -42,6 +42,8 @@ collections:
               - { name: color, label: "Color / tono", widget: string, required: false }
               - { name: material, label: "Material (vacío = 'Por completar')", widget: string, required: false }
               - { name: medidas, label: "Medidas (vacío = 'Por completar')", widget: string, required: false }
+              - { name: talles, label: "Talles (opcional, ej.: 6, 7, 8 — la clienta elige uno al comprar)", widget: list, required: false }
+              - { name: etiquetaTalle, label: "Nombre del talle (ej.: Talle, Diámetro)", widget: string, required: false, default: "Talle" }
               - { name: stock, label: "Stock (vacío = 'a confirmar', 0 = agotado)", widget: number, value_type: int, min: 0, required: false }
               - { name: destacado, label: "Mostrar en destacados del inicio", widget: boolean, default: false }
               - { name: activo, label: "Visible en la tienda", widget: boolean, default: true }
