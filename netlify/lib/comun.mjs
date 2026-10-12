@@ -15,7 +15,7 @@ export const precio = n => fmt.format(n || 0);
 export const emailValido = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e || "").trim());
 
 // Aviso a la tienda por WhatsApp (CallMeBot). Variables en Netlify:
-//   WHATSAPP_TELEFONO (ej.: +59898710158) y WHATSAPP_APIKEY (la clave de CallMeBot).
+//   WHATSAPP_TELEFONO (con código de país, ej.: +598 9X XXX XXX) y WHATSAPP_APIKEY (la clave de CallMeBot).
 export async function avisarWhatsApp(texto) {
   const tel = process.env.WHATSAPP_TELEFONO, key = process.env.WHATSAPP_APIKEY;
   if (!tel || !key) { console.log("Aviso por WhatsApp desactivado (faltan variables)."); return false; }
