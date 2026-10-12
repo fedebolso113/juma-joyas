@@ -3,6 +3,7 @@
     {
       "id": "aros-flor-roja",
       "nombre": "Aros Flor Roja",
+      "marca": "Carlota",
       "categoria": "Aros",
       "precio": 1390,
       "descripcion": "Aros con forma de flor de cuatro pétalos en rojo intenso, con borde en tono dorado. Una pieza con mucha presencia que ilumina cualquier look.",
@@ -21,6 +22,7 @@
     {
       "id": "brazalete-ondas",
       "nombre": "Brazalete Ondas",
+      "marca": "Carlota",
       "categoria": "Pulseras",
       "precio": 1890,
       "descripcion": "Brazalete ancho en tono dorado, con textura martillada y bordes ondulados. Ideal para usar solo o combinado con pulseras finas.",
@@ -38,6 +40,7 @@
     {
       "id": "pulsera-esferas",
       "nombre": "Pulsera Esferas",
+      "marca": "Carlota",
       "categoria": "Pulseras",
       "precio": 1290,
       "descripcion": "Pulsera de esferas pulidas en tono dorado. Un básico delicado para el día a día que combina con todo.",
@@ -55,6 +58,7 @@
     {
       "id": "aros-flor-negra",
       "nombre": "Aros Flor Negra",
+      "marca": "Carlota",
       "categoria": "Aros",
       "precio": 1390,
       "descripcion": "Aros con forma de flor de cuatro pétalos en negro, con borde en tono dorado. Elegantes y con carácter.",
@@ -72,6 +76,7 @@
     {
       "id": "aros-flor-blanca",
       "nombre": "Aros Flor Blanca",
+      "marca": "Carlota",
       "categoria": "Aros",
       "precio": 1390,
       "descripcion": "Aros con forma de flor de cuatro pétalos en blanco, con borde en tono dorado. Suaves, luminosos y fáciles de combinar.",
@@ -89,6 +94,7 @@
     {
       "id": "aros-hojas-plateados",
       "nombre": "Aros Hojas",
+      "marca": "Carlota",
       "categoria": "Aros",
       "precio": 1190,
       "descripcion": "Aros con forma de hojas en tono plateado, de superficie lisa y brillante. Delicados y modernos.",
@@ -106,6 +112,7 @@
     {
       "id": "aros-hojas-oscuros",
       "nombre": "Aros Hojas Oscuros",
+      "marca": "Carlota",
       "categoria": "Aros",
       "precio": 1190,
       "descripcion": "Aros con forma de hojas en tono gris oscuro brillante. Una versión más intensa del clásico diseño de hojas.",
@@ -122,6 +129,7 @@
     {
       "id": "aros-ala",
       "nombre": "Aros Ala",
+      "marca": "Carlota",
       "categoria": "Aros",
       "precio": 1190,
       "descripcion": "Aros en tono dorado con forma de ala, de volumen suave y acabado pulido.",
@@ -138,6 +146,7 @@
     {
       "id": "argollas-piedras-negras",
       "nombre": "Argollas Piedras Negras",
+      "marca": "Carlota",
       "categoria": "Aros",
       "precio": 1290,
       "descripcion": "Argollas pequeñas en tono dorado con dos filas de piedras negras. Un toque de brillo para todos los días.",
@@ -155,6 +164,7 @@
     {
       "id": "anillo-brillo",
       "nombre": "Anillo Brillo",
+      "marca": "Carlota",
       "categoria": "Anillos",
       "precio": 990,
       "descripcion": "Anillo fino en tono plateado con una línea de piedras brillantes. Delicado para usar solo o combinado con otros anillos.",
@@ -171,6 +181,7 @@
     {
       "id": "anillo-noche",
       "nombre": "Anillo Noche",
+      "marca": "Carlota",
       "categoria": "Anillos",
       "precio": 1490,
       "descripcion": "Anillo ancho en tono plateado, cubierto de cristales oscuros que reflejan la luz. Una pieza llamativa y sofisticada.",

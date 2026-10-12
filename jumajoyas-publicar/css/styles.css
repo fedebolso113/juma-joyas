@@ -258,6 +258,7 @@ main { min-height: 60vh; outline: none; }
 .tarjeta .agregar-mini:hover { background: var(--bordo); color: #fff; }
 .tarjeta .agregar-mini[disabled] { display: none; }
 .tarjeta__info { padding: 10px 2px 0; display: flex; flex-direction: column; gap: 2px; }
+.tarjeta__marca { font-size: .66rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--texto-suave); }
 .tarjeta__nombre { font-size: .9rem; font-weight: 500; text-decoration: none; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tarjeta__nombre:hover { text-decoration: underline; }
 .precio { font-size: .86rem; font-weight: 400; letter-spacing: .01em; }
@@ -321,6 +322,10 @@ main { min-height: 60vh; outline: none; }
 
 .ficha { position: sticky; top: 140px; }
 .ficha__cat { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--bordo); text-decoration: none; }
+.ficha__marca { display: block; margin-top: 10px; font-size: .78rem; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--texto-suave); text-decoration: none; }
+.ficha__marca:hover { color: var(--texto); }
+.chips + .chips { margin-top: 0; }
+.filtros__fila .chips[aria-label="Filtrar por marca"] { flex-basis: 100%; order: 3; }
 .ficha h1 { margin: 6px 0 8px; font-family: var(--sans); font-weight: 500; font-size: clamp(1.4rem, 2.6vw, 1.9rem); text-transform: uppercase; letter-spacing: .02em; }
 .ficha__precio { font-size: 1.2rem; margin-bottom: 6px; }
 .ficha__desc { color: var(--texto); margin: 18px 0; }

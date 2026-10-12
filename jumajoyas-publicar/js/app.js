@@ -122,6 +122,7 @@
         <button class="agregar-mini" data-agregar="${esc(p.id)}" aria-label="Agregar ${esc(p.nombre)} al carrito" ${d.puede ? "" : "disabled"}>${icoMas}</button>
       </div>
       <div class="tarjeta__info">
+        ${p.marca ? `<span class="tarjeta__marca">${esc(p.marca)}</span>` : ""}
         <a class="tarjeta__nombre" href="${urlProducto(p)}">${esc(p.nombre)}</a>
         <span class="precio">${precio(p.precio)}</span>
       </div>
@@ -207,12 +208,18 @@
     return orden;
   }
 
-  const estadoCatalogo = { q: "", cat: "", orden: "destacados" };
+  function marcasConProductos() {
+    return [...new Set(PRODUCTOS.filter(p => p.activo !== false && p.marca).map(p => p.marca))].sort((a, b) => a.localeCompare(b, "es"));
+  }
+
+  const estadoCatalogo = { q: "", cat: "", marca: "", orden: "destacados" };
 
   function vistaCatalogo(params) {
     estadoCatalogo.cat = params.get("cat") || "";
+    estadoCatalogo.marca = params.get("marca") || "";
     if (params.has("q")) estadoCatalogo.q = params.get("q");
     const cats = categoriasConProductos();
+    const marcas = marcasConProductos();
     return `
       <div class="contenedor">
         <nav class="migas" aria-label="Ruta"><a href="#/">Inicio</a> / Joyas</nav>
@@ -223,6 +230,10 @@
               <button class="chip" data-cat="" aria-pressed="${!estadoCatalogo.cat}">Todas</button>
               ${cats.map(c => `<button class="chip" data-cat="${esc(c)}" aria-pressed="${estadoCatalogo.cat === c}">${esc(c)}</button>`).join("")}
             </div>
+            ${marcas.length > 1 || estadoCatalogo.marca ? `<div class="chips" role="group" aria-label="Filtrar por marca">
+              <button class="chip" data-marca="" aria-pressed="${!estadoCatalogo.marca}">Todas las marcas</button>
+              ${marcas.map(m => `<button class="chip" data-marca="${esc(m)}" aria-pressed="${estadoCatalogo.marca === m}">${esc(m)}</button>`).join("")}
+            </div>` : ""}
             <label class="orden"><span class="sr-only">Ordenar</span>
               <select id="ordenar">
                 <option value="destacados">Destacados</option>
@@ -243,7 +254,8 @@
     const q = normalizar(estadoCatalogo.q.trim());
     let lista = PRODUCTOS.filter(p => p.activo !== false)
       .filter(p => !estadoCatalogo.cat || p.categoria === estadoCatalogo.cat)
-      .filter(p => !q || normalizar(p.nombre).includes(q));
+      .filter(p => !estadoCatalogo.marca || p.marca === estadoCatalogo.marca)
+      .filter(p => !q || normalizar(`${p.nombre} ${p.marca || ""}`).includes(q));
     const o = estadoCatalogo.orden;
     if (o === "precio-asc") lista.sort((a, b) => a.precio - b.precio);
     else if (o === "precio-desc") lista.sort((a, b) => b.precio - a.precio);
@@ -252,8 +264,9 @@
     document.getElementById("grilla").innerHTML = lista.map(tarjeta).join("");
     document.getElementById("vacio").hidden = lista.length > 0;
     document.getElementById("resultado-n").textContent = lista.length === 1 ? "1 joya" : `${lista.length} joyas`;
-    document.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cat === estadoCatalogo.cat)));
-    document.getElementById("cat-titulo").textContent = estadoCatalogo.cat || "Todas las joyas";
+    document.querySelectorAll(".chip[data-cat]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cat === estadoCatalogo.cat)));
+    document.querySelectorAll(".chip[data-marca]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.marca === estadoCatalogo.marca)));
+    document.getElementById("cat-titulo").textContent = [estadoCatalogo.cat || "Todas las joyas", estadoCatalogo.marca].filter(Boolean).join(" · ");
   }
 
   function montarCatalogo() {
@@ -262,8 +275,9 @@
     sel.value = estadoCatalogo.orden;
     input.value = estadoCatalogo.q;
     sel.addEventListener("change", () => { estadoCatalogo.orden = sel.value; filtrarCatalogo(); });
-    document.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { estadoCatalogo.cat = b.dataset.cat; filtrarCatalogo(); }));
-    document.getElementById("limpiar").addEventListener("click", () => { estadoCatalogo.q = ""; estadoCatalogo.cat = ""; input.value = ""; filtrarCatalogo(); });
+    document.querySelectorAll(".chip[data-cat]").forEach(b => b.addEventListener("click", () => { estadoCatalogo.cat = b.dataset.cat; filtrarCatalogo(); }));
+    document.querySelectorAll(".chip[data-marca]").forEach(b => b.addEventListener("click", () => { estadoCatalogo.marca = b.dataset.marca; filtrarCatalogo(); }));
+    document.getElementById("limpiar").addEventListener("click", () => { estadoCatalogo.q = ""; estadoCatalogo.cat = ""; estadoCatalogo.marca = ""; input.value = ""; filtrarCatalogo(); });
     filtrarCatalogo();
   }
 
@@ -273,7 +287,7 @@
     const d = disponibilidad(p);
     const varias = p.imagenes.length > 1;
     const relacionados = PRODUCTOS.filter(x => x.id !== p.id && x.activo !== false && x.categoria === p.categoria).slice(0, 4);
-    const consulta = linkWA(`¡Hola JUMA Joyas! Quería consultar por: ${p.nombre} (${precio(p.precio)}).\n${location.href}`);
+    const consulta = linkWA(`¡Hola JUMA Joyas! Quería consultar por: ${p.marca ? p.marca + " · " : ""}${p.nombre} (${precio(p.precio)}).\n${location.href}`);
     const fila = (titulo, valor, falta) => `<div><dt>${titulo}</dt><dd>${valor ? esc(valor) : pendiente(falta)}</dd></div>`;
     return `
       <div class="contenedor">
@@ -291,6 +305,7 @@
           </div>
           <div class="ficha">
             <a class="ficha__cat" href="#/catalogo?cat=${encodeURIComponent(p.categoria)}">${esc(p.categoria)}</a>
+            ${p.marca ? `<a class="ficha__marca" href="#/catalogo?marca=${encodeURIComponent(p.marca)}">${esc(p.marca)}</a>` : ""}
             <h1>${esc(p.nombre)}</h1>
             <div class="ficha__precio">${precio(p.precio)}</div>
             <span class="disp disp--${d.clase}">${d.texto}</span>
@@ -307,6 +322,7 @@
               ${consulta ? `<a class="btn btn--wa" href="${consulta}" target="_blank" rel="noopener">${icoWA} Consultar por WhatsApp</a>` : (pendientesVisibles() ? `<span class="pendiente" style="text-align:center;padding:10px">Botón de WhatsApp: falta cargar el número en la configuración</span>` : "")}
             </div>
             <dl class="detalles">
+              ${p.marca ? fila("Marca", p.marca) : ""}
               ${fila("Categoría", p.categoria)}
               ${fila("Color / tono", p.color, "Por completar")}
               ${fila("Material", p.material, "Por completar")}
@@ -533,7 +549,7 @@
       const c = costoEnvio(envio, st, datos.barrio);
       const f = new Date();
       const codigo = "JUMA-" + f.toISOString().slice(2, 10).replace(/-/g, "") + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
-      pedidoActual = { codigo, datos, envio, zona, pago, costoEnvio: c, lineas: lineasCarrito().map(l => ({ nombre: l.p.nombre, cant: l.cant, precio: l.p.precio })), subtotal: st };
+      pedidoActual = { codigo, datos, envio, zona, pago, costoEnvio: c, lineas: lineasCarrito().map(l => ({ nombre: (l.p.marca ? l.p.marca + " · " : "") + l.p.nombre, cant: l.cant, precio: l.p.precio })), subtotal: st };
       location.hash = "#/confirmar";
     });
   }

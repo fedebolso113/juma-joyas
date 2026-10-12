@@ -37,6 +37,7 @@ collections:
             fields:
               - { name: id, label: "ID (sin espacios ni tildes, se usa en la dirección web)", widget: string, pattern: ["^[a-z0-9-]+$", "Solo minúsculas, números y guiones"] }
               - { name: nombre, label: Nombre, widget: string }
+              - { name: marca, label: "Marca (ej.: Carlota)", widget: string, required: false }
               - { name: categoria, label: Categoría, widget: select, options: ["Aros", "Anillos", "Pulseras", "Collares"] }
               - { name: precio, label: "Precio (UYU)", widget: number, value_type: int, min: 0 }
               - { name: descripcion, label: Descripción, widget: text }
