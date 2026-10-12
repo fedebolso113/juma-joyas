@@ -33,7 +33,7 @@
   function disponibilidad(p) {
     if (p.stock === null || p.stock === undefined || p.stock === "") return { clase: "consultar", texto: "Disponibilidad a confirmar", puede: true, max: 99 };
     const s = Number(p.stock);
-    if (s <= 0) return { clase: "no", texto: "Agotado", puede: false, max: 0 };
+    if (s <= 0) return { clase: "no", texto: "No disponible", puede: false, max: 0 };
     return { clase: "ok", texto: "Disponible", puede: true, max: s };   // no se muestra la cantidad, solo si hay
   }
 
@@ -127,7 +127,7 @@
   function tarjeta(p) {
     const d = disponibilidad(p);
     const img2 = p.imagenes[1] ? `<img class="alt" src="${esc(p.imagenes[1])}" alt="" loading="lazy" decoding="async">` : "";
-    const etiqueta = d.clase === "no" ? '<span class="etiqueta etiqueta--agotado">Agotado</span>'
+    const etiqueta = d.clase === "no" ? '<span class="etiqueta etiqueta--agotado">No disponible</span>'
       : (p.destacado ? '<span class="etiqueta">Favorita</span>' : "");
     return `<article class="tarjeta">
       <div class="tarjeta__img">
@@ -331,7 +331,7 @@
                   <span id="cant" aria-live="polite">1</span>
                   <button type="button" data-cant="1" aria-label="Sumar uno">+</button>
                 </div>
-                <button class="btn" id="agregar" ${d.puede ? "" : "disabled"}>${d.puede ? "Agregar al carrito" : "Agotado"}</button>
+                <button class="btn" id="agregar" ${d.puede ? "" : "disabled"}>${d.puede ? "Agregar al carrito" : "No disponible"}</button>
               </div>
             </div>
             <dl class="detalles">
@@ -340,7 +340,6 @@
               ${fila("Color / tono", p.color, "Por completar")}
               ${fila("Material", p.material, "Por completar")}
               ${fila("Medidas", p.medidas, "Por completar")}
-              ${fila("Stock", (p.stock === null || p.stock === undefined || p.stock === "") ? "" : String(p.stock), "Por completar")}
             </dl>
           </div>
         </div>

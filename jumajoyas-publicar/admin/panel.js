@@ -128,7 +128,7 @@
           <span class="prod__badges">
             ${p.destacado ? '<span class="badge badge--fav">Favorita</span>' : ""}
             ${p.activo === false ? '<span class="badge badge--oculto">Oculto</span>' : ""}
-            ${agotado(p) ? '<span class="badge badge--agotado">Agotado</span>' : ""}
+            ${agotado(p) ? '<span class="badge badge--agotado">No disponible</span>' : ""}
           </span>
         </button>
         <div class="prod__info" data-editar>

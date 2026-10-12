@@ -524,3 +524,6 @@ body.con-barra .toast { bottom: calc(92px + env(safe-area-inset-bottom)); }
 .comprobante-ok { background: #EEF5EF; border: 1px solid #cfe3d2; border-radius: var(--radio); padding: 18px 20px; margin: 0 0 14px; text-align: left; }
 .comprobante-ok strong { color: var(--ok); font-size: 1.05rem; }
 .comprobante-ok p { margin: 6px 0 0; }
+.disp { font-weight: 500; }
+.disp--ok { color: #2E7D4F; }
+.disp--no { color: var(--agotado); }

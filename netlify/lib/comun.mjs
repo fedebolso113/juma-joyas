@@ -21,7 +21,13 @@ export async function avisarWhatsApp(texto) {
   if (!tel || !key) { console.log("Aviso por WhatsApp desactivado (faltan variables)."); return false; }
   const url = "https://api.callmebot.com/whatsapp.php?phone=" + encodeURIComponent(tel) +
     "&text=" + encodeURIComponent(texto) + "&apikey=" + encodeURIComponent(key);
-  try { const r = await fetch(url); console.log("WhatsApp:", r.status); return r.ok; }
+  try {
+    const r = await fetch(url);
+    // CallMeBot responde 200 aunque haya un problema: se registra el texto para poder revisarlo en los logs
+    const txt = (await r.text()).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300);
+    console.log("WhatsApp:", r.status, txt);
+    return r.ok && !/error|invalid|not/i.test(txt);
+  }
   catch (e) { console.log("WhatsApp falló:", e.message); return false; }
 }
 
