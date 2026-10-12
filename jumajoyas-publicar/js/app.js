@@ -171,8 +171,6 @@
     const fotoCat = { Aros: "aros", Pulseras: "pulseras", Anillos: "anillos", Collares: "collares" };
     const tiles = cats.slice(0, 3).map(c => ({ href: `#/catalogo?cat=${encodeURIComponent(c)}`, foto: fotoCat[c] || "capas", titulo: c, link: `Ver ${c.toLowerCase()}`, alt: c }));
     tiles.push({ href: "#/catalogo", foto: "collares", titulo: "Toda la colección", link: "Ver todo", alt: "Collares dorados" });
-    const wa = linkWA((CONFIG.contacto && CONFIG.contacto.mensajeWhatsapp) || "¡Hola!");
-    const waRegalo = linkWA("¡Hola JUMA Joyas! Estoy buscando una joya para regalar, ¿me ayudan a elegir?");
     return `
       <section class="portada">
         ${imgFoto("portada", 2000, 1100, "Mujer con los Aros Flor Roja de JUMA", { eager: true })}
@@ -190,7 +188,7 @@
       ${catPrincipal ? filaProductos(`${catPrincipal} para todos los días`, activos.filter(p => p.categoria === catPrincipal), `#/catalogo?cat=${encodeURIComponent(catPrincipal)}`, `Ver ${catPrincipal.toLowerCase()}`) : ""}
 
       ${mosaico([
-        { href: waRegalo || "#/contacto", externo: !!waRegalo, foto: "regalo", titulo: "Para regalar", link: "Te ayudamos a elegir", alt: "Manos sosteniendo una caja de regalo" },
+        { href: "#/catalogo", foto: "regalo", titulo: "Para regalar", link: "Ideas para regalar", alt: "Manos sosteniendo una caja de regalo" },
         { href: "#/catalogo", foto: "capas", titulo: "Combiná y superponé", link: "Armá tu look", alt: "Collares dorados superpuestos" },
         { href: "#/historia", foto: "historia2", titulo: "Nuestra historia", link: "Conocenos", alt: "Collar dorado delicado" }
       ], 3)}
@@ -208,7 +206,7 @@
           </div>
           <div class="historia__acciones">
             <a class="btn" href="#/catalogo">Comprar ahora</a>
-            ${wa ? `<a class="btn btn--claro" href="${wa}" target="_blank" rel="noopener">Escribinos</a>` : ""}
+            <a class="btn btn--claro" href="#/contacto">Contacto</a>
           </div>
         </div>
       </section>`;
@@ -300,7 +298,6 @@
     const d = disponibilidad(p);
     const varias = p.imagenes.length > 1;
     const relacionados = PRODUCTOS.filter(x => x.id !== p.id && x.activo !== false && x.categoria === p.categoria).slice(0, 4);
-    const consulta = linkWA(`¡Hola JUMA Joyas! Quería consultar por: ${p.marca ? p.marca + " · " : ""}${p.nombre} (${precio(p.precio)}).\n${location.href}`);
     const fila = (titulo, valor, falta) => `<div><dt>${titulo}</dt><dd>${valor ? esc(valor) : pendiente(falta)}</dd></div>`;
     return `
       <div class="contenedor">
@@ -335,7 +332,6 @@
                 </div>
                 <button class="btn" id="agregar" ${d.puede ? "" : "disabled"}>${d.puede ? "Agregar al carrito" : "Agotado"}</button>
               </div>
-              ${consulta ? `<a class="btn btn--wa" href="${consulta}" target="_blank" rel="noopener">${icoWA} Consultar por WhatsApp</a>` : (pendientesVisibles() ? `<span class="pendiente" style="text-align:center;padding:10px">Botón de WhatsApp: falta cargar el número en la configuración</span>` : "")}
             </div>
             <dl class="detalles">
               ${p.marca ? fila("Marca", p.marca) : ""}
@@ -653,8 +649,8 @@
   const DIAMETROS_ESCLAVA = [["5,5 cm", 5.5], ["6 cm", 6], ["6,5 cm", 6.5], ["7 cm", 7]];
 
   function vistaTalles(tipo) {
-    const wa = linkWA(`¡Hola JUMA Joyas! Necesito ayuda para elegir ${tipo === "anillos" ? "el talle de un anillo" : "la medida de una pulsera"}.`);
-    const ayuda = `<div class="guia__ayuda"><p><strong>¿Te quedan dudas?</strong> Escribinos y te ayudamos a elegir.</p>${wa ? `<a class="btn btn--wa" href="${wa}" target="_blank" rel="noopener">${icoWA} Consultar por WhatsApp</a>` : ""}</div>`;
+    const email = (CONFIG.contacto && CONFIG.contacto.email) || "";
+    const ayuda = `<div class="guia__ayuda"><p><strong>¿Te quedan dudas?</strong> Escribinos y te ayudamos a elegir.</p>${email ? `<a class="btn btn--claro" href="mailto:${esc(email)}?subject=${encodeURIComponent(tipo === "anillos" ? "Consulta por talle de anillo" : "Consulta por medida de pulsera")}">Escribinos a ${esc(email)}</a>` : `<a class="btn btn--claro" href="#/contacto">Contacto</a>`}</div>`;
     const pestañas = `<nav class="guia__tabs" aria-label="Guías"><a href="#/talles/anillos" aria-current="${tipo === "anillos"}">Anillos</a><a href="#/talles/pulseras" aria-current="${tipo === "pulseras"}">Pulseras</a></nav>`;
     const verProductos = cat => `<p class="guia__ver"><a class="subrayado" href="#/catalogo?cat=${cat}">Ver ${cat.toLowerCase()}</a></p>`;
 
@@ -744,8 +740,7 @@
       reloj: '<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="8" stroke="currentColor" fill="none" stroke-width="1.4"/><path d="M12 8v4l3 2" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"/></svg>'
     };
     const items = [
-      { k: "wa", t: "WhatsApp", v: c.whatsapp, href: linkWA(c.mensajeWhatsapp || "¡Hola!") },
-      { k: "mail", t: "Email", v: c.email, href: c.email ? "mailto:" + c.email : "" },
+      { k: "mail", t: "Consultas personalizadas", v: c.email, href: c.email ? "mailto:" + c.email : "" },
       { k: "ig", t: "Instagram", v: r.instagram, href: urlRed("instagram", r.instagram) },
       { k: "fb", t: "Facebook", v: r.facebook, href: urlRed("facebook", r.facebook) },
       { k: "tt", t: "TikTok", v: r.tiktok, href: urlRed("tiktok", r.tiktok) },
@@ -773,15 +768,11 @@
 
   /* ---------- elementos globales ---------- */
   function pintarGlobales() {
-    const wa = document.getElementById("wa-flotante");
-    const link = linkWA((CONFIG.contacto && CONFIG.contacto.mensajeWhatsapp) || "¡Hola!");
-    if (link) { wa.href = link; wa.target = "_blank"; wa.rel = "noopener"; wa.hidden = false; }
-
-    const r = CONFIG.redes || {};
+    const r = CONFIG.redes || {}, email = (CONFIG.contacto && CONFIG.contacto.email) || "";
     const redes = [["Instagram", "instagram"], ["Facebook", "facebook"], ["TikTok", "tiktok"]].filter(([, k]) => r[k]);
     document.getElementById("pie-redes").innerHTML = `<h3>Seguinos</h3>` +
       (redes.length ? redes.map(([n, k]) => `<a href="${esc(urlRed(k, r[k]))}" target="_blank" rel="noopener">${n}</a>`).join("") : pendiente("Redes por completar")) +
-      (link ? `<a href="${link}" target="_blank" rel="noopener">WhatsApp</a>` : "");
+      (email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : "");
 
     const faltan = [];
     if (!numeroWA()) faltan.push("número de WhatsApp");

@@ -4,13 +4,160 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Administración · JUMA Joyas</title>
+  <title>Panel · JUMA Joyas</title>
   <link rel="icon" type="image/svg+xml" href="../img/logo-mark.svg">
-  <!-- Inicio de sesión con usuario y contraseña (Netlify Identity) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="panel.css">
+  <!-- Inicio de sesión con email y contraseña (Netlify Identity, solo usuarios invitados) -->
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
-  <!-- Panel de administración (Decap CMS): productos, fotos, precios, stock y configuración. -->
-  <script src="https://unpkg.com/decap-cms@3.6.3/dist/decap-cms.js"></script>
+  <!-- Pantalla de ingreso -->
+  <section class="ingreso" id="ingreso" hidden>
+    <div class="ingreso__caja">
+      <img src="../img/logo-mark.svg" alt="" width="64" height="64">
+      <p class="ingreso__marca">JUMA</p>
+      <p class="ingreso__sub">Panel de administración</p>
+      <button class="btn btn--primario btn--bloque" id="btn-ingresar">Ingresar</button>
+      <p class="ingreso__ayuda">¿Olvidaste tu contraseña? Tocá "Ingresar" y después "Forgot password?".</p>
+      <a class="ingreso__volver" href="/">← Volver a la tienda</a>
+    </div>
+  </section>
+
+  <!-- Panel -->
+  <div class="panel" id="panel" hidden>
+    <header class="barra">
+      <a class="barra__marca" href="#productos"><img src="../img/logo-mark.svg" alt="" width="30" height="30"><span>JUMA</span><small>Panel</small></a>
+      <nav class="barra__tabs" aria-label="Secciones">
+        <a href="#productos" data-tab="productos">Productos <span class="contador" id="n-productos"></span></a>
+        <a href="#tienda" data-tab="tienda">Tienda</a>
+      </nav>
+      <div class="barra__der">
+        <a class="barra__link" href="/" target="_blank" rel="noopener">Ver tienda ↗</a>
+        <span class="barra__usuario" id="usuario"></span>
+        <button class="barra__link" id="btn-salir">Salir</button>
+      </div>
+    </header>
+
+    <main class="contenido">
+      <!-- Productos -->
+      <section id="vista-productos" class="vista">
+        <div class="cabeza">
+          <div>
+            <h1>Productos</h1>
+            <p class="sutil" id="resumen-productos"></p>
+          </div>
+          <button class="btn btn--primario" id="btn-nuevo">+ Nuevo producto</button>
+        </div>
+        <div class="filtros">
+          <label class="buscar"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="search" id="f-buscar" placeholder="Buscar por nombre o marca…"></label>
+          <select id="f-cat" aria-label="Categoría"><option value="">Todas las categorías</option></select>
+          <select id="f-marca" aria-label="Marca"><option value="">Todas las marcas</option></select>
+          <select id="f-estado" aria-label="Estado">
+            <option value="">Todos</option>
+            <option value="visibles">Visibles en la tienda</option>
+            <option value="ocultos">Ocultos</option>
+            <option value="agotados">Agotados</option>
+            <option value="favoritas">Favoritas</option>
+          </select>
+        </div>
+        <div class="grilla" id="grilla"></div>
+        <p class="vacio" id="vacio" hidden>No hay productos con esos filtros.</p>
+      </section>
+
+      <!-- Configuración de la tienda -->
+      <section id="vista-tienda" class="vista" hidden>
+        <div class="cabeza"><div><h1>Tienda</h1><p class="sutil">Datos de contacto y costos de envío.</p></div></div>
+        <form class="tarjeta-form" id="form-tienda">
+          <fieldset>
+            <legend>Contacto</legend>
+            <label>Email de contacto<input name="email" type="email" placeholder="info@jumajoyas.com.uy"></label>
+            <label>Instagram<input name="instagram" placeholder="@juma.joyas"></label>
+          </fieldset>
+          <fieldset>
+            <legend>Envíos en Montevideo (por zona)</legend>
+            <div class="tres-col" id="zonas"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Envío gratis</legend>
+            <label>Envío gratis en compras desde (UYU) <small>Dejalo vacío si no ofrecés envío gratis.</small><input name="envioGratisDesde" type="number" min="0" step="10"></label>
+          </fieldset>
+          <div class="acciones"><button class="btn btn--primario" type="submit">Guardar cambios</button></div>
+        </form>
+        <p class="sutil avanzado">¿Necesitás cambiar otra cosa (medios de pago, textos)? Usá el <a href="cms/">editor avanzado</a>.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Editor de producto -->
+  <div class="editor" id="editor" hidden>
+    <div class="editor__fondo" data-cerrar></div>
+    <form class="editor__caja" id="form-producto" novalidate>
+      <header class="editor__cabeza">
+        <h2 id="editor-titulo">Editar producto</h2>
+        <button type="button" class="icono" data-cerrar aria-label="Cerrar">✕</button>
+      </header>
+      <div class="editor__cuerpo">
+        <section>
+          <h3>Fotos <small>La primera es la principal. Podés arrastrar varias juntas.</small></h3>
+          <div class="fotos" id="fotos"></div>
+          <label class="subir" id="zona-subir">
+            <input type="file" id="input-fotos" accept="image/*" multiple hidden>
+            <span><strong>Subir fotos</strong> o arrastralas acá</span>
+          </label>
+        </section>
+        <section>
+          <h3>Datos</h3>
+          <label>Nombre *<input name="nombre" required placeholder="Ej.: Aros Fiorella Rojos"></label>
+          <div class="dos-col">
+            <label>Marca / proveedor<input name="marca" list="lista-marcas" placeholder="Ej.: Carlota"></label>
+            <label>Categoría *<select name="categoria" required></select></label>
+          </div>
+          <div class="dos-col">
+            <label>Precio (UYU) *<input name="precio" type="number" min="0" step="10" required></label>
+            <label>Stock <small>Vacío = a confirmar</small>
+              <div class="paso-num"><button type="button" data-stock="-1">−</button><input name="stock" type="number" min="0"><button type="button" data-stock="1">+</button></div>
+            </label>
+          </div>
+        </section>
+        <section>
+          <h3>Detalle</h3>
+          <label>Descripción<textarea name="descripcion" rows="4"></textarea></label>
+          <div class="dos-col">
+            <label>Material<input name="material" placeholder="Ej.: Acero quirúrgico con baño de oro 18k"></label>
+            <label>Medidas<input name="medidas" placeholder="Ej.: 3 cm"></label>
+          </div>
+          <label>Color / tono<input name="color" placeholder="Ej.: Dorado"></label>
+        </section>
+        <section>
+          <h3>Talles</h3>
+          <label class="interruptor"><input type="checkbox" name="conTalles"><span></span>La clienta tiene que elegir un talle o medida</label>
+          <div class="dos-col" id="bloque-talles">
+            <label>¿Cómo se llama?<select name="etiquetaTalle"><option>Talle</option><option>Diámetro</option><option>Largo</option></select></label>
+            <label>Opciones <small>Separadas por coma</small><input name="talles" placeholder="6, 7, 8, 9"></label>
+          </div>
+        </section>
+        <section>
+          <h3>Mostrar</h3>
+          <label class="interruptor"><input type="checkbox" name="activo"><span></span>Visible en la tienda</label>
+          <label class="interruptor"><input type="checkbox" name="destacado"><span></span>Favorita (aparece en el inicio)</label>
+        </section>
+      </div>
+      <footer class="editor__pie">
+        <button type="button" class="btn btn--peligro" id="btn-eliminar">Eliminar</button>
+        <span class="espacio"></span>
+        <button type="button" class="btn btn--claro" data-cerrar>Cancelar</button>
+        <button type="submit" class="btn btn--primario" id="btn-guardar">Guardar</button>
+      </footer>
+    </form>
+  </div>
+  <datalist id="lista-marcas"></datalist>
+
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+  <script src="panel.js"></script>
 </body>
 </html>

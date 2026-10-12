@@ -11,7 +11,7 @@ backend:
 locale: es
 site_url: "https://jumajoyas.com.uy"
 display_url: "https://jumajoyas.com.uy"
-logo_url: ../img/logo-mark.svg
+logo_url: ../../img/logo-mark.svg
 
 media_folder: jumajoyas-publicar/img/productos
 public_folder: img/productos
