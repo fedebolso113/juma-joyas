@@ -95,7 +95,11 @@
     if (/(invite|recovery|confirmation|email_change)_token=/.test(location.hash)) {
       var s = document.createElement("script");
       s.src = "https://identity.netlify.com/v1/netlify-identity-widget.js";
-      s.onload = function () { netlifyIdentity.on("login", function () { location.href = "/admin/"; }); };
+      s.onload = function () {
+        // el script se carga después de que la página terminó de cargar, así que hay que iniciarlo a mano
+        netlifyIdentity.on("login", function () { location.href = "/admin/"; });
+        netlifyIdentity.init();
+      };
       document.head.appendChild(s);
     }
   </script>
