@@ -137,7 +137,6 @@ async function login(env, request) {
   return json({ ok: true }, 200, { "Set-Cookie": `juma_sesion=${valor}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${60 * 60 * 24 * 14}` });
 }
 
-// diagnóstico temporal de Mercado Pago: tipo y largo de la clave y a qué cuenta pertenece (nunca muestra la clave)
 /* ---------- API pública ---------- */
 async function crearPedido(env, request) {
   const e = await request.json().catch(() => null);
