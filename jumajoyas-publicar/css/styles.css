@@ -70,6 +70,14 @@ p { margin: 0 0 1em; }
   border-radius: 4px; padding: 1px 8px; letter-spacing: .02em;
 }
 
+/* ---------- Barra de anuncio ---------- */
+.anuncio {
+  background: var(--bordo); color: #fff;
+  font-size: .92rem; font-weight: 300; letter-spacing: .02em;
+  text-align: center; padding: 12px var(--gutter);
+}
+@media (max-width: 600px) { .anuncio { font-size: .8rem; padding: 10px 12px; } }
+
 /* ---------- Franja de ventajas (portada) ---------- */
 .ventajas {
   display: grid; grid-template-columns: repeat(3, 1fr);

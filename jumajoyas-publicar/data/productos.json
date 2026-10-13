@@ -213,21 +213,18 @@
     },
     {
       "id": "esclava-maria",
-      "nombre": "Esclava María",
+      "nombre": "Esclava Magda",
       "marca": "Carlota",
       "categoria": "Pulseras",
-      "precio": 890,
+      "precio": 950,
       "descripcion": "Pulsera rígida, liviana y minimalista con brillo dorado. Para usar sola o de a varias. Resistente al agua: no se oxida ni cambia de color.",
       "color": "Dorado",
       "material": "Acero quirúrgico con baño de oro 18k",
-      "medidas": "Diámetro a elección: 5,5 · 6 · 6,5 · 7 cm",
+      "medidas": "4 mm de ancho",
       "talles": [
-        "5,5 cm",
-        "6 cm",
-        "6,5 cm",
-        "7 cm"
+        "9"
       ],
-      "etiquetaTalle": "Diámetro",
+      "etiquetaTalle": "Talle",
       "stock": 1,
       "destacado": false,
       "activo": true,
