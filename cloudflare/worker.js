@@ -13,6 +13,8 @@
 // Variable: ADMIN_EMAIL (mail con el que se entra al panel)
 // =============================================================
 
+// clave de Mercado Pago sin espacios ni saltos de línea que se cuelan al pegarla
+const tokenMP = env => String(env.MP_ACCESS_TOKEN || "").replace(/\s/g, "");
 const json = (datos, status = 200, extra = {}) =>
   new Response(JSON.stringify(datos), { status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...extra } });
 const fmt = new Intl.NumberFormat("es-UY", { style: "currency", currency: "UYU", maximumFractionDigits: 0 });
@@ -135,6 +137,7 @@ async function login(env, request) {
   return json({ ok: true }, 200, { "Set-Cookie": `juma_sesion=${valor}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${60 * 60 * 24 * 14}` });
 }
 
+// diagnóstico temporal de Mercado Pago: tipo y largo de la clave y a qué cuenta pertenece (nunca muestra la clave)
 /* ---------- API pública ---------- */
 async function crearPedido(env, request) {
   const e = await request.json().catch(() => null);
@@ -159,11 +162,11 @@ async function crearPedido(env, request) {
   if (pedido.newsletter) await guardarSuscriptor(env, pedido.cliente.email, pedido.cliente.nombre, "compra " + codigo);
 
   if (pedido.pago.id === "mercadopago") {
-    if (!env.MP_ACCESS_TOKEN) return json({ codigo, total: pedido.total, modo: "mercadopago-manual" });
+    if (!tokenMP(env)) return json({ codigo, total: pedido.total, modo: "mercadopago-manual" });
     const items = pedido.lineas.map(l => ({ title: l.nombre, quantity: l.cant, unit_price: l.precio, currency_id: "UYU" }));
     if (pedido.costoEnvio && !pedido.envio.pagaComprador) items.push({ title: "Envío: " + pedido.envio.nombre, quantity: 1, unit_price: pedido.costoEnvio, currency_id: "UYU" });
     const r = await fetch("https://api.mercadopago.com/checkout/preferences", {
-      method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + env.MP_ACCESS_TOKEN },
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tokenMP(env) },
       body: JSON.stringify({
         items, external_reference: codigo, payer: { name: pedido.cliente.nombre, email: pedido.cliente.email },
         back_urls: { success: `${origen}/#/gracias?codigo=${codigo}`, pending: `${origen}/#/gracias?codigo=${codigo}&estado=pendiente`, failure: `${origen}/#/gracias?codigo=${codigo}&estado=error` },
@@ -208,14 +211,14 @@ async function guardarSuscriptor(env, email, nombre, origen) {
 }
 
 async function webhookMP(env, request) {
-  if (!env.MP_ACCESS_TOKEN) return json({ ok: true });
+  if (!tokenMP(env)) return json({ ok: true });
   const url = new URL(request.url);
   const cuerpo = await request.json().catch(() => ({}));
   const tipo = cuerpo.type || cuerpo.topic || url.searchParams.get("type") || url.searchParams.get("topic");
   const id = (cuerpo.data && cuerpo.data.id) || url.searchParams.get("data.id") || url.searchParams.get("id");
   if (tipo !== "payment" || !id) return json({ ok: true });
   // se consulta el pago a Mercado Pago: no se confía en el contenido del aviso
-  const r = await fetch("https://api.mercadopago.com/v1/payments/" + encodeURIComponent(id), { headers: { Authorization: "Bearer " + env.MP_ACCESS_TOKEN } });
+  const r = await fetch("https://api.mercadopago.com/v1/payments/" + encodeURIComponent(id), { headers: { Authorization: "Bearer " + tokenMP(env) } });
   if (!r.ok) return json({ ok: true });
   const pago = await r.json();
   const codigo = pago.external_reference; if (!codigo) return json({ ok: true });
