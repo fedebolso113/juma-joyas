@@ -182,6 +182,12 @@
         </div>
       </section>
 
+      <section class="ventajas" aria-label="Cómo comprar">
+        <div class="ventaja"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg><div><strong>Envíos a todo Uruguay</strong><span>Montevideo con costo por zona</span></div></div>
+        <div class="ventaja"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 11H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg><div><strong>Comprá online</strong><span>Fácil, desde tu celular</span></div></div>
+        <div class="ventaja"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/></svg><div><strong>Transferencia o Mercado Pago</strong><span>Enviamos una vez acreditado el pago</span></div></div>
+      </section>
+
       ${filaProductos("Nuestras favoritas", favoritas.slice(0, 8), "#/catalogo", "Ver todo")}
 
       ${mosaico(tiles, 4)}
