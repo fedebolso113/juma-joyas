@@ -5,7 +5,12 @@
     "presentacion": "JUMA nace del cariño entre hermanas y del gusto por los detalles. Elegimos cada pieza pensando en mujeres reales: joyas delicadas, femeninas y fáciles de combinar, para regalar o regalarte.",
     "dominio": "www.jumajoyas.com.uy"
   },
-  "categorias": ["Aros", "Anillos", "Pulseras", "Collares"],
+  "categorias": [
+    "Aros",
+    "Anillos",
+    "Pulseras",
+    "Collares"
+  ],
   "contacto": {
     "whatsapp": "",
     "mensajeWhatsapp": "¡Hola JUMA Joyas! Quería hacer una consulta.",
@@ -51,19 +56,88 @@
       "id": "zona-1",
       "nombre": "Zona 1 · Cercana",
       "costo": 250,
-      "barrios": ["Ciudad Vieja", "Centro", "Barrio Sur", "Cordón", "Palermo", "Parque Rodó", "Aguada", "Tres Cruces", "La Comercial", "Villa Muñoz", "Goes", "Jacinto Vera", "Larrañaga", "La Blanqueada", "Parque Batlle", "Punta Carretas", "Pocitos", "Reducto", "Arroyo Seco", "Bella Vista"]
+      "barrios": [
+        "Ciudad Vieja",
+        "Centro",
+        "Barrio Sur",
+        "Cordón",
+        "Palermo",
+        "Parque Rodó",
+        "Aguada",
+        "Tres Cruces",
+        "La Comercial",
+        "Villa Muñoz",
+        "Goes",
+        "Jacinto Vera",
+        "Larrañaga",
+        "La Blanqueada",
+        "Parque Batlle",
+        "Punta Carretas",
+        "Pocitos",
+        "Reducto",
+        "Arroyo Seco",
+        "Bella Vista"
+      ]
     },
     {
       "id": "zona-2",
       "nombre": "Zona 2 · Intermedia",
       "costo": 270,
-      "barrios": ["Buceo", "Malvín", "Villa Dolores", "La Figurita", "Brazo Oriental", "Atahualpa", "Prado", "Capurro", "Belvedere", "Paso Molino", "La Teja", "Aires Puros", "Cerrito", "Unión", "Malvín Norte", "Villa Española", "Mercado Modelo", "Bolívar", "Las Acacias", "Castro", "Pérez Castellanos", "Sayago", "Nuevo París", "Tres Ombúes"]
+      "barrios": [
+        "Buceo",
+        "Malvín",
+        "Villa Dolores",
+        "La Figurita",
+        "Brazo Oriental",
+        "Atahualpa",
+        "Prado",
+        "Capurro",
+        "Belvedere",
+        "Paso Molino",
+        "La Teja",
+        "Aires Puros",
+        "Cerrito",
+        "Unión",
+        "Malvín Norte",
+        "Villa Española",
+        "Mercado Modelo",
+        "Bolívar",
+        "Las Acacias",
+        "Castro",
+        "Pérez Castellanos",
+        "Sayago",
+        "Nuevo París",
+        "Tres Ombúes"
+      ]
     },
     {
       "id": "zona-3",
       "nombre": "Zona 3 · Alejada",
       "costo": 300,
-      "barrios": ["Punta Gorda", "Carrasco", "Carrasco Norte", "Maroñas", "Flor de Maroñas", "Ituzaingó", "Jardines del Hipódromo", "Piedras Blancas", "Manga", "Casavalle", "Las Canteras", "Punta de Rieles", "Peñarol", "Colón", "Lezica", "Conciliación", "Cerro", "Casabó", "Pajas Blancas", "Paso de la Arena", "Villa García", "Toledo Chico"]
+      "barrios": [
+        "Punta Gorda",
+        "Carrasco",
+        "Carrasco Norte",
+        "Maroñas",
+        "Flor de Maroñas",
+        "Ituzaingó",
+        "Jardines del Hipódromo",
+        "Piedras Blancas",
+        "Manga",
+        "Casavalle",
+        "Las Canteras",
+        "Punta de Rieles",
+        "Peñarol",
+        "Colón",
+        "Lezica",
+        "Conciliación",
+        "Cerro",
+        "Casabó",
+        "Pajas Blancas",
+        "Paso de la Arena",
+        "Villa García",
+        "Toledo Chico"
+      ]
     }
   ],
   "envioGratisDesde": null,
@@ -83,5 +157,5 @@
       "activo": true
     }
   ],
-  "mostrarCamposPendientes": true
+  "mostrarCamposPendientes": false
 }
