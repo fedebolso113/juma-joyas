@@ -33,6 +33,18 @@ async function leerCatalogo(env, request, nombre) {
   return r.json();
 }
 
+/* ---------- stock: cada compra reserva las piezas; si se cancela, vuelven ---------- */
+async function moverStock(env, request, lineas, signo) {
+  const cat = await leerCatalogo(env, request, "productos");
+  let cambio = false;
+  for (const l of lineas) {
+    const p = (cat.productos || []).find(x => x.id === l.id);
+    if (!p || p.stock === null || p.stock === undefined || p.stock === "") continue;
+    p.stock = Math.max(0, Number(p.stock) + signo * l.cant); cambio = true;
+  }
+  if (cambio) await env.DATOS.put("catalogo:productos", JSON.stringify(cat));
+}
+
 /* ---------- WhatsApp (CallMeBot) ---------- */
 async function avisarWhatsApp(env, texto) {
   if (!env.WHATSAPP_TELEFONO || !env.WHATSAPP_APIKEY) { console.log("Aviso por WhatsApp desactivado (faltan secretos)."); return false; }
@@ -157,6 +169,8 @@ async function crearPedido(env, request) {
     newsletter: !!e.newsletter, direccion: calc.envio.requiereDireccion ? String(e.direccion).trim() : "", notas: String(e.notas || "").slice(0, 500),
     lineas: calc.lineas, subtotal: calc.subtotal, costoEnvio: calc.costoEnvio, total: calc.total, envio: calc.envio, pago: calc.pago
   };
+  await moverStock(env, request, pedido.lineas, -1);
+  pedido.stockReservado = true;
   await env.DATOS.put("pedido:" + codigo, JSON.stringify(pedido));
   if (pedido.newsletter) await guardarSuscriptor(env, pedido.cliente.email, pedido.cliente.nombre, "compra " + codigo);
 
@@ -270,6 +284,8 @@ async function admin(env, request, ruta) {
     if (!ESTADOS.includes(estado)) return json({ error: "Estado inválido" }, 400);
     const p = await env.DATOS.get("pedido:" + codigo, { type: "json" });
     if (!p) return json({ error: "No existe ese pedido" }, 404);
+    if (estado === "cancelado" && p.estado !== "cancelado" && p.stockReservado) { await moverStock(env, request, p.lineas, +1); p.stockReservado = false; }
+    else if (estado !== "cancelado" && p.estado === "cancelado" && p.stockReservado === false) { await moverStock(env, request, p.lineas, -1); p.stockReservado = true; }
     p.estado = estado; p.historial = (p.historial || []).concat({ estado, fecha: new Date().toISOString() });
     await env.DATOS.put("pedido:" + codigo, JSON.stringify(p));
     return json({ ok: true, pedido: p });
