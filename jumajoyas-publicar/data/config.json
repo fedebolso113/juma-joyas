@@ -153,8 +153,9 @@
     {
       "id": "mercadopago",
       "nombre": "Mercado Pago",
-      "instrucciones": "Pagás online con tarjeta o con tu cuenta de Mercado Pago.",
-      "activo": true
+      "instrucciones": "Pagás online con tarjeta o con tu cuenta de Mercado Pago. Tiene un recargo del 5% (comisión de Mercado Pago).",
+      "activo": true,
+      "recargo": 5
     }
   ],
   "mostrarCamposPendientes": false

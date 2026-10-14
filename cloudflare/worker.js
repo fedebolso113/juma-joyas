@@ -69,6 +69,7 @@ function resumenPedido(p) {
     `Entrega: ${p.envio.nombre} (${p.envio.texto})`,
     p.direccion ? `Dirección: ${p.direccion}` : null,
     `Pago: ${p.pago.nombre}`,
+    p.recargo ? `Recargo ${p.pago.nombre}: ${precio(p.recargo)}` : null,
     `*Total: ${precio(p.total)}*${p.costoEnvio === null && !p.envio.pagaComprador ? " + envío a confirmar" : ""}`, "",
     `Clienta: ${p.cliente.nombre}`, `Mail: ${p.cliente.email}`, `Celular: ${p.cliente.telefono}`,
     p.notas ? `Notas: ${p.notas}` : null
@@ -102,11 +103,13 @@ async function calcularPedido(env, request, entrada) {
     zona = (cfg.zonasMontevideo || []).find(z => (z.barrios || []).includes(entrada.barrio)) || null;
     costoEnvio = zona && zona.costo != null ? Number(zona.costo) : null;
   } else costoEnvio = envio.costo == null || envio.costo === "" ? null : Number(envio.costo);
+  const pctRecargo = Number(pago.recargo) || 0;
+  const recargo = pctRecargo > 0 ? Math.round((subtotal + (envio.pagaComprador ? 0 : (costoEnvio || 0))) * pctRecargo / 100) : 0;
   const texto = envio.pagaComprador ? "a cargo del comprador" : (costoEnvio === null ? "a confirmar" : (costoEnvio === 0 ? "sin costo" : precio(costoEnvio)));
   return {
-    lineas, subtotal, costoEnvio, total: subtotal + (envio.pagaComprador ? 0 : (costoEnvio || 0)),
+    lineas, subtotal, costoEnvio, recargo, total: subtotal + (envio.pagaComprador ? 0 : (costoEnvio || 0)) + recargo,
     envio: { id: envio.id, nombre: envio.nombre + (zona ? " · " + zona.nombre : ""), texto, requiereDireccion: !!envio.requiereDireccion, pagaComprador: !!envio.pagaComprador },
-    pago: { id: pago.id, nombre: pago.nombre },
+    pago: { id: pago.id, nombre: pago.nombre, recargo: pctRecargo },
     datosTransferencia: cfg.datosTransferencia || ""
   };
 }
@@ -167,7 +170,7 @@ async function crearPedido(env, request) {
     codigo, fecha: ahora.toISOString(), estado: "esperando-pago",
     cliente: { nombre: String(c.nombre).trim(), email: String(c.email).trim().toLowerCase(), telefono: String(c.telefono).trim() },
     newsletter: !!e.newsletter, direccion: calc.envio.requiereDireccion ? String(e.direccion).trim() : "", notas: String(e.notas || "").slice(0, 500),
-    lineas: calc.lineas, subtotal: calc.subtotal, costoEnvio: calc.costoEnvio, total: calc.total, envio: calc.envio, pago: calc.pago
+    lineas: calc.lineas, subtotal: calc.subtotal, costoEnvio: calc.costoEnvio, recargo: calc.recargo, total: calc.total, envio: calc.envio, pago: calc.pago
   };
   await moverStock(env, request, pedido.lineas, -1);
   pedido.stockReservado = true;
@@ -175,9 +178,10 @@ async function crearPedido(env, request) {
   if (pedido.newsletter) await guardarSuscriptor(env, pedido.cliente.email, pedido.cliente.nombre, "compra " + codigo);
 
   if (pedido.pago.id === "mercadopago") {
-    if (!tokenMP(env)) return json({ codigo, total: pedido.total, modo: "mercadopago-manual" });
+    if (!tokenMP(env)) return json({ codigo, total: pedido.total, recargo: pedido.recargo, modo: "mercadopago-manual" });
     const items = pedido.lineas.map(l => ({ title: l.nombre, quantity: l.cant, unit_price: l.precio, currency_id: "UYU" }));
     if (pedido.costoEnvio && !pedido.envio.pagaComprador) items.push({ title: "Envío: " + pedido.envio.nombre, quantity: 1, unit_price: pedido.costoEnvio, currency_id: "UYU" });
+    if (pedido.recargo) items.push({ title: `Recargo Mercado Pago (${pedido.pago.recargo}%)`, quantity: 1, unit_price: pedido.recargo, currency_id: "UYU" });
     const r = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tokenMP(env) },
       body: JSON.stringify({
@@ -187,8 +191,8 @@ async function crearPedido(env, request) {
       })
     });
     const pref = await r.json().catch(() => ({}));
-    if (!r.ok || !pref.init_point) { console.log("Mercado Pago:", r.status, JSON.stringify(pref).slice(0, 300)); return json({ codigo, total: pedido.total, modo: "mercadopago-manual" }); }
-    return json({ codigo, total: pedido.total, modo: "mercadopago", pagar: pref.init_point });
+    if (!r.ok || !pref.init_point) { console.log("Mercado Pago:", r.status, JSON.stringify(pref).slice(0, 300)); return json({ codigo, total: pedido.total, recargo: pedido.recargo, modo: "mercadopago-manual" }); }
+    return json({ codigo, total: pedido.total, recargo: pedido.recargo, modo: "mercadopago", pagar: pref.init_point });
   }
   return json({ codigo, total: pedido.total, modo: "transferencia", datosTransferencia: calc.datosTransferencia });
 }

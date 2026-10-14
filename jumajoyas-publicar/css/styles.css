@@ -409,6 +409,7 @@ main { min-height: 60vh; outline: none; }
 .opcion:has(input:checked) { border-color: var(--texto); box-shadow: 0 0 0 1px var(--texto); }
 .opcion input { margin: 4px 0 0; accent-color: var(--bordo); width: 18px; height: 18px; }
 .opcion strong { font-weight: 500; display: block; }
+.opcion__extra { font-style: normal; font-size: .78rem; color: var(--bordo); background: var(--rosa); border-radius: 10px; padding: 1px 7px; margin-left: 4px; }
 .opcion small { color: var(--texto-suave); font-size: .82rem; display: block; }
 .opcion__costo { font-size: .88rem; white-space: nowrap; }
 .campo__ayuda { font-size: .78rem; color: var(--texto-suave); }

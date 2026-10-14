@@ -433,6 +433,8 @@
   }
 
   function enviosActivos() { return (CONFIG.envios || []).filter(e => e.activo !== false); }
+  // recargo por forma de pago (ej.: comisión de Mercado Pago), en % sobre productos + envío
+  function calcRecargo(pg, base) { const pct = pg ? Number(pg.recargo) || 0 : 0; return pct > 0 ? Math.round(base * pct / 100) : 0; }
   function pagosActivos() { return (CONFIG.pagos || []).filter(e => e.activo !== false); }
   function zonas() { return CONFIG.zonasMontevideo || []; }
   function zonaDeBarrio(b) { return zonas().find(z => (z.barrios || []).includes(b)) || null; }
@@ -502,7 +504,7 @@
               <legend>Forma de pago</legend>
               ${pagos.map((pg, k) => `
                 <label class="opcion"><input type="radio" name="pago" value="${esc(pg.id)}" ${k === 0 ? "checked" : ""}>
-                  <span><strong>${esc(pg.nombre)}</strong>${pg.instrucciones ? `<small>${esc(pg.instrucciones)}</small>` : ""}</span><span></span></label>`).join("") || pendiente("Configurar medios de pago")}
+                  <span><strong>${esc(pg.nombre)}${Number(pg.recargo) ? ` <em class="opcion__extra">+${Number(pg.recargo)}%</em>` : ""}</strong>${pg.instrucciones ? `<small>${esc(pg.instrucciones)}</small>` : ""}</span><span></span></label>`).join("") || pendiente("Configurar medios de pago")}
               <p class="aviso-pago">${esc(textoPagoPrevio())}</p>
             </fieldset>
             <fieldset>
@@ -515,6 +517,7 @@
             <div class="resumen__items">${lineas.map(l => `<div><span>${l.cant} × ${esc(nombreLinea(l))}</span><span>${precio(l.p.precio * l.cant)}</span></div>`).join("")}</div>
             <div class="resumen__fila"><span>Subtotal</span><span>${precio(st)}</span></div>
             <div class="resumen__fila"><span>Envío</span><span id="r-envio">—</span></div>
+            <div class="resumen__fila" id="r-fila-recargo" hidden><span id="r-recargo-txt">Recargo</span><span id="r-recargo"></span></div>
             <div class="resumen__fila resumen__fila--total"><span>Total</span><span id="r-total">${precio(st)}</span></div>
             <p class="resumen__nota" id="r-nota"></p>
             <button class="btn btn--bloque" type="submit" form="form-pedido" id="btn-confirmar">Confirmar compra</button>
@@ -538,7 +541,13 @@
       const faltaBarrio = conZonas && !barrio;
       const c = costoEnvio(e, st, barrio);
       document.getElementById("r-envio").textContent = !e ? "—" : (faltaBarrio ? "Elegí tu barrio" : textoEnvio(e, c));
-      const total = st + (c || 0);
+      const selPago = form.querySelector("[name=pago]:checked");
+      const pg = selPago ? pagosActivos().find(x => x.id === selPago.value) : null;
+      const rec = calcRecargo(pg, st + (e && e.pagaComprador ? 0 : (c || 0)));
+      document.getElementById("r-fila-recargo").hidden = !rec;
+      document.getElementById("r-recargo-txt").textContent = pg ? `Recargo ${pg.nombre} (${Number(pg.recargo) || 0}%)` : "Recargo";
+      document.getElementById("r-recargo").textContent = precio(rec);
+      const total = st + (c || 0) + rec;
       document.getElementById("r-total").textContent = precio(total) + (envioAConfirmar(e, c) ? " + envío" : "");
       document.getElementById("b-total").textContent = precio(total);
       document.getElementById("r-nota").textContent = e && e.pagaComprador ? "El envío lo pagás al recibirlo en la agencia."
@@ -597,7 +606,7 @@
         return;
       }
       pedidoActual = {
-        codigo: r.codigo, modo: r.modo, total: r.total, datosTransferencia: r.datosTransferencia || "",
+        codigo: r.codigo, modo: r.modo, total: r.total, recargo: r.recargo || 0, datosTransferencia: r.datosTransferencia || "",
         datos, envio, zona, pago, costoEnvio: c, subtotal: st,
         lineas: lineas.map(l => ({ nombre: nombreLinea(l), cant: l.cant, precio: l.p.precio }))
       };
@@ -684,6 +693,7 @@
       <div class="resumen__items">${o.lineas.map(l => `<div><span>${l.cant} × ${esc(l.nombre)}</span><span>${precio(l.precio * l.cant)}</span></div>`).join("")}</div>
       <div class="resumen__fila"><span>Entrega: ${esc(o.envio.nombre)}${o.zona ? " · " + esc(o.zona.nombre) : ""}</span><span>${textoEnvio(o.envio, o.costoEnvio)}</span></div>
       <div class="resumen__fila"><span>Pago</span><span>${esc(o.pago.nombre)}</span></div>
+      ${o.recargo ? `<div class="resumen__fila"><span>Recargo ${esc(o.pago.nombre)}</span><span>${precio(o.recargo)}</span></div>` : ""}
       <div class="resumen__fila resumen__fila--total"><span>Total</span><span>${precio(conTotal)}${envioAConfirmar(o.envio, o.costoEnvio) ? " + envío" : ""}</span></div>
     </div>`;
   }
